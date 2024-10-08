@@ -1,0 +1,18 @@
+animation state="DEFAULT"
+blank
+animation state="IDLE_U"
+blank
+animation state="IDLE_D"
+blank
+animation state="IDLE_L"
+blank
+animation state="IDLE_R"
+blank
+
+animation state="COUNTDOWN"
+frame duration="1" x="1" y="1" w="8" h="8" originx="4" originy="8"
+frame duration="1" x="10" y="1" w="8" h="8" originx="4" originy="8"
+frame duration="1" x="19" y="1" w="8" h="8" originx="4" originy="8"
+
+animation state="FIGHT"
+frame x="1" y="10" w="40" h="8" originx="20" originy="8"

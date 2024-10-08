@@ -1,0 +1,4 @@
+animation state="DEFAULT"
+frame duration="10f" x="0" y="0" w="256" h="160"
+point label="VELOCITY" x="0.5"
+frame duration="10f" x="256" y="0" w="256" h="160"
