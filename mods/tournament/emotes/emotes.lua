@@ -104,6 +104,7 @@ local function spawn_emote(name)
     math.random(Tile:width(), (Field:width() - 2) * Tile:width()),
     math.random(-Tile:height() * 1.5, Tile:height() / 2 - 4)
   )
+  node:set_never_flip(true)
 
   emote_nodes[#emote_nodes + 1] = node
 end
