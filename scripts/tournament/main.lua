@@ -214,7 +214,7 @@ local prepare_next_battle = Async.create_function(function()
   end
 
   arena:start_countdown(function()
-    set_area_message("Fight!")
+    set_area_message("Battling")
 
     -- gather players for battle
     local list = {}
