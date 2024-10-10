@@ -1,4 +1,5 @@
 local init_emotes_for = require("emotes/emotes.lua")
+local handle_team_disparity = require("handle_team_disparity.lua")
 ---@type InputDisplay
 local InputDisplay = require("input_display/input_display.lua")
 
@@ -138,6 +139,8 @@ function encounter_init(encounter, data)
       init_spectator(player)
       return false
     end)
+
+    handle_team_disparity(field)
 
     entity:erase()
   end
