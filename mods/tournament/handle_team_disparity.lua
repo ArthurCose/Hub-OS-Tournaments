@@ -52,18 +52,18 @@ local function handle_team_disparity(field)
   end)
 
   -- resolve base count
-  local base_count
+  local base_count = math.maxinteger
   local equal_teams = true
 
   for _, team in ipairs(teams) do
     local players = team_lists[team]
 
-    if base_count and #players ~= base_count then
-      equal_teams = false
-    end
-
     if #players > 0 then
-      base_count = math.min(base_count or math.maxinteger, #players)
+      base_count = math.min(base_count, #players)
+
+      if #players ~= base_count then
+        equal_teams = false
+      end
     end
   end
 
