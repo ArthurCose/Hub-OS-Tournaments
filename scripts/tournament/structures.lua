@@ -169,6 +169,18 @@ function SingleElimination.new(teams)
   return se
 end
 
+function SingleElimination:round_name()
+  local total_round_teams = #self.bracket.advancing * 2 + #self.bracket.current
+
+  if total_round_teams == 2 then
+    return "Grand Finals"
+  elseif total_round_teams <= 4 then
+    return "Semi-Finals"
+  end
+
+  return "Elimination"
+end
+
 ---@param team TournamentTeam
 function SingleElimination:advance_team(team)
   self.bracket:advance_team(team)
@@ -242,6 +254,27 @@ function DoubleElimination.new(teams)
   setmetatable(de, DoubleElimination)
 
   return de
+end
+
+function DoubleElimination:round_name()
+  local winners_round_teams = #self.winners_bracket.advancing * 2 + #self.winners_bracket.current
+  local losers_round_teams = #self.losers_bracket.advancing * 2 + #self.losers_bracket.current
+
+  if self.active_bracket == self.losers_bracket then
+    if losers_round_teams == 2 and winners_round_teams <= 2 then
+      return "Semi-FinalsL"
+    end
+
+    return "EliminationL"
+  end
+
+  if winners_round_teams == 2 and losers_round_teams == 0 then
+    return "Grand Finals"
+  elseif winners_round_teams == 2 then
+    return "Semi-Finals"
+  end
+
+  return "Elimination"
 end
 
 ---@param team TournamentTeam

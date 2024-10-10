@@ -145,7 +145,7 @@ local function resolve_winner()
 end
 
 local prepare_next_battle = Async.create_function(function()
-  set_area_message("Preparing")
+  set_area_message(tournament:round_name())
   print("Preparing next battle")
 
   -- select teams immediately to handle reset
@@ -215,8 +215,6 @@ local prepare_next_battle = Async.create_function(function()
   end
 
   arena:start_countdown(function()
-    set_area_message("Battling")
-
     -- gather players for battle
     local list = {}
     local accounted = {}
