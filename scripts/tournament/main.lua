@@ -218,6 +218,7 @@ local prepare_next_battle = Async.create_function(function()
 
     -- gather players for battle
     local list = {}
+    local accounted = {}
 
     -- put contestants at the front
     for _, team in ipairs(match.teams) do
@@ -226,6 +227,7 @@ local prepare_next_battle = Async.create_function(function()
 
         if contestant then
           list[#list + 1] = contestant.id
+          accounted[contestant.id] = true
           -- if the contestant rejoined, track it
           match:unmark_exit(name)
         else
@@ -237,11 +239,9 @@ local prepare_next_battle = Async.create_function(function()
 
     -- load spectators
     for _, id in ipairs(Net.list_players(area_id)) do
-      local name = Net.get_player_name(id)
-      local team = team_map[name]
-
-      if not includes(match.teams, team) then
+      if not accounted[id] then
         list[#list + 1] = id
+        accounted[id] = true
       end
     end
 
