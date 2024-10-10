@@ -7,6 +7,7 @@ local Direction = require("scripts/libs/direction")
 ---@type TournamentStructures
 local structures = require("scripts/tournament/structures")
 local TournamentTeam = structures.TournamentTeam
+local TournamentMatch = structures.TournamentMatch
 local DoubleElimination = structures.DoubleElimination
 
 local BREAK_TIME = 10 -- in seconds
@@ -32,8 +33,8 @@ local contestant_map = {}
 local team_map = {}
 ---@type DoubleElimination
 local tournament
----@type [TournamentTeam, TournamentTeam]
-local arena_teams = {}
+---@type TournamentMatch?
+local match
 local started = false
 local arena = Arena.find_arenas(area_id)[1]
 ---@type function?
@@ -157,8 +158,7 @@ local prepare_next_battle = Async.create_function(function()
   print("Preparing next battle")
 
   -- select teams immediately to handle reset
-  arena_teams[1] = pick_random_team()
-  arena_teams[2] = pick_random_team()
+  match = TournamentMatch.new(pick_random_team(), pick_random_team())
 
   -- set up callback for resetting
   local reset = false
@@ -206,14 +206,14 @@ local prepare_next_battle = Async.create_function(function()
     end
   end
 
-  summon_team(arena_teams[1], -1, Direction.DOWN_RIGHT)
+  summon_team(match.red_team, -1, Direction.DOWN_RIGHT)
 
   -- check for reset before continuing
   if reset then
     return
   end
 
-  summon_team(arena_teams[2], 1, Direction.UP_LEFT)
+  summon_team(match.blue_team, 1, Direction.UP_LEFT)
 
   -- let people take it in
   Async.await(Async.sleep(1))
@@ -230,7 +230,7 @@ local prepare_next_battle = Async.create_function(function()
     local list = {}
 
     -- put contestants at the front
-    for _, team in ipairs(arena_teams) do
+    for _, team in ipairs(match.teams) do
       for _, name in ipairs(team.members) do
         local contestant = contestant_map[name]
 
@@ -245,19 +245,19 @@ local prepare_next_battle = Async.create_function(function()
       local name = Net.get_player_name(id)
       local team = team_map[name]
 
-      if not includes(arena_teams, team) then
+      if not includes(match.teams, team) then
         list[#list + 1] = id
       end
     end
 
-    print("Initiating battle: " .. arena_teams[1]:to_string() .. " vs " .. arena_teams[2]:to_string())
+    print("Initiating battle: " .. match.red_team:to_string() .. " vs " .. match.blue_team:to_string())
 
     Net.initiate_netplay(
       list,
       "/server/mods/tournament",
       {
-        red_count = #arena_teams[1].members,
-        blue_count = #arena_teams[2].members
+        red_count = #match.red_team.members,
+        blue_count = #match.blue_team.members
       }
     )
   end)
@@ -317,13 +317,15 @@ local function reset()
   arena:reset()
 
   -- return contestants if they haven't already been returned
-  for _, team in ipairs(arena_teams) do
-    for _, name in ipairs(team.members) do
-      local contestant = contestant_map[name]
+  if match then
+    for _, team in ipairs(match.teams) do
+      for _, name in ipairs(team.members) do
+        local contestant = contestant_map[name]
 
-      if contestant then
-        Net.unlock_player_camera(contestant.id)
-        return_contestant(contestant)
+        if contestant then
+          Net.unlock_player_camera(contestant.id)
+          return_contestant(contestant)
+        end
       end
     end
   end
@@ -353,13 +355,13 @@ Net:on("player_disconnect", function(event)
   tournament:disqualify_team(team)
 
   -- reset the arena and advance the opponent team if this team was set to fight
-  if includes(arena_teams, team) then
+  if match and includes(match.teams, team) then
     local opponent_team
 
-    if arena_teams[1] == team then
-      opponent_team = arena_teams[2]
+    if match.red_team == team then
+      opponent_team = match.blue_team
     else
-      opponent_team = arena_teams[1]
+      opponent_team = match.red_team
     end
 
     if opponent_team then
@@ -382,7 +384,7 @@ Net:on("battle_results", function(event)
 
   if event.ran then
     print(name .. " forfeited")
-  elseif event.health > 0 and arena_teams[1] then
+  elseif event.health > 0 and match then
     local team = team_map[name]
 
     if not team then
@@ -394,12 +396,12 @@ Net:on("battle_results", function(event)
     -- set area message and resolve losing team
     local losing_team
 
-    if team == arena_teams[1] then
+    if team == match.red_team then
       set_area_message("Red Wins")
-      losing_team = arena_teams[2]
+      losing_team = match.blue_team
     else
       set_area_message("Blue Wins")
-      losing_team = arena_teams[1]
+      losing_team = match.red_team
     end
 
     -- see if we should allow the losing team into the losers bracket
@@ -411,8 +413,7 @@ Net:on("battle_results", function(event)
 
     -- reset arena
     arena:reset()
-    arena_teams[1] = nil
-    arena_teams[2] = nil
+    match = nil
 
     -- advance winning team
     tournament:advance_team(team)

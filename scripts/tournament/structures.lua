@@ -24,6 +24,25 @@ function TournamentTeam:to_string()
   return "[ " .. table.concat(self.members, ", ") .. " ]"
 end
 
+---@class TournamentMatch
+---@field red_team TournamentTeam
+---@field blue_team TournamentTeam
+---@field teams TournamentTeam[]
+local TournamentMatch = {}
+TournamentMatch.__index = TournamentMatch
+
+function TournamentMatch.new(red_team, blue_team)
+  ---@type TournamentMatch
+  local match = {
+    red_team = red_team,
+    blue_team = blue_team,
+    teams = { red_team, blue_team }
+  }
+  setmetatable(match, TournamentMatch)
+
+  return match
+end
+
 ---@class TournamentBracket
 ---@field current TournamentTeam[]
 ---@field advancing TournamentTeam[]
@@ -179,6 +198,7 @@ end
 ---@class TournamentStructures
 local TournamentStructures = {
   TournamentTeam = TournamentTeam,
+  TournamentMatch = TournamentMatch,
   TournamentBracket = TournamentBracket,
   DoubleElimination = DoubleElimination
 }
