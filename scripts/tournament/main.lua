@@ -9,6 +9,7 @@ local structures = require("scripts/tournament/structures")
 local TournamentTeam = structures.TournamentTeam
 local TournamentMatch = structures.TournamentMatch
 local DoubleElimination = structures.DoubleElimination
+local includes = structures.includes
 
 local BREAK_TIME = 10 -- in seconds
 
@@ -72,17 +73,6 @@ local function all_connected()
     end
   end
   return true
-end
-
----@param list any[]
-local function includes(list, value)
-  for _, v in ipairs(list) do
-    if value == v then
-      return true
-    end
-  end
-
-  return false
 end
 
 local function pick_random_team()
@@ -236,6 +226,11 @@ local prepare_next_battle = Async.create_function(function()
 
         if contestant then
           list[#list + 1] = contestant.id
+          -- if the contestant rejoined, track it
+          match:unmark_exit(name)
+        else
+          -- if the contestant is missing, track it
+          match:mark_exit(name)
         end
       end
     end
@@ -328,6 +323,10 @@ local function reset()
         end
       end
     end
+
+    match = nil
+
+    start_break()
   end
 end
 
@@ -346,6 +345,11 @@ Net:on("player_disconnect", function(event)
   local team = team_map[name]
 
   team.connected_count = team.connected_count - 1
+
+
+  if match then
+    match:mark_exit(name)
+  end
 
   if not started or team.connected_count > 0 then
     return
@@ -382,9 +386,30 @@ Net:on("battle_results", function(event)
     return
   end
 
-  if event.ran then
-    print(name .. " forfeited")
-  elseif event.health > 0 and match then
+  Async.sleep(0.5).and_then(function()
+    return_contestant(contestant)
+  end)
+
+  if not match then
+    return
+  end
+
+  if event.ran or event.health <= 0 then
+    print(name .. " deleted")
+
+    match:mark_exit(name)
+
+    if match.result_count == match.total_players then
+      print("Tie?")
+
+      -- try to give the teams a second chance
+      for _, team in ipairs(match.teams) do
+        tournament:try_second_chance(team)
+      end
+
+      reset()
+    end
+  else
     local team = team_map[name]
 
     if not team then
@@ -393,27 +418,14 @@ Net:on("battle_results", function(event)
 
     print("Winner: " .. team:to_string())
 
-    -- set area message and resolve losing team
-    local losing_team
-
+    -- set area message and try to give the losing team a second chance
     if team == match.red_team then
       set_area_message("Red Wins")
-      losing_team = match.blue_team
+      tournament:try_second_chance(match.blue_team)
     else
       set_area_message("Blue Wins")
-      losing_team = match.red_team
+      tournament:try_second_chance(match.red_team)
     end
-
-    -- see if we should allow the losing team into the losers bracket
-    losing_team.chances = losing_team.chances - 1
-
-    if losing_team.chances > 0 then
-      tournament.losers_bracket:advance_team(losing_team)
-    end
-
-    -- reset arena
-    arena:reset()
-    match = nil
 
     -- advance winning team
     tournament:advance_team(team)
@@ -427,10 +439,6 @@ Net:on("battle_results", function(event)
       end
     end
 
-    start_break()
+    reset()
   end
-
-  Async.sleep(0.5).and_then(function()
-    return_contestant(contestant)
-  end)
 end)

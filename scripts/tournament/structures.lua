@@ -1,3 +1,14 @@
+---@param list any[]
+local function includes(list, value)
+  for _, v in ipairs(list) do
+    if value == v then
+      return true
+    end
+  end
+
+  return false
+end
+
 ---@class TournamentTeam
 ---@field members string[]
 ---@field connected_count number
@@ -28,6 +39,9 @@ end
 ---@field red_team TournamentTeam
 ---@field blue_team TournamentTeam
 ---@field teams TournamentTeam[]
+---@field player_accounting table<string, boolean>
+---@field result_count number
+---@field total_players number
 local TournamentMatch = {}
 TournamentMatch.__index = TournamentMatch
 
@@ -36,11 +50,48 @@ function TournamentMatch.new(red_team, blue_team)
   local match = {
     red_team = red_team,
     blue_team = blue_team,
-    teams = { red_team, blue_team }
+    teams = { red_team, blue_team },
+    player_accounting = {},
+    result_count = 0,
+    total_players = #red_team.members + #blue_team.members
   }
   setmetatable(match, TournamentMatch)
 
   return match
+end
+
+---Track players losing or disconnecting during a battle
+---@param member string
+function TournamentMatch:mark_exit(member)
+  if self.player_accounting[member] then
+    -- already marked
+    return
+  end
+
+  local team
+
+  for _, t in ipairs(self.teams) do
+    if includes(t.members, member) then
+      team = t
+      break
+    end
+  end
+
+  if not team then
+    return
+  end
+
+  self.player_accounting[member] = true
+  self.result_count = self.result_count + 1
+end
+
+---Undo a tracked exit, in case the player came back in time to start the battle
+---@param member string
+function TournamentMatch:unmark_exit(member)
+  if self.player_accounting[member] then
+    self.player_accounting[member] = nil
+    self.result_count = self.result_count - 1
+  end
 end
 
 ---@class TournamentBracket
@@ -136,6 +187,19 @@ function DoubleElimination:advance_team(team)
   self.active_bracket:advance_team(team)
 end
 
+---@param team TournamentTeam
+function DoubleElimination:try_second_chance(team)
+  if team.connected_count == 0 then
+    return
+  end
+
+  team.chances = team.chances - 1
+
+  if team.chances > 0 then
+    self.losers_bracket:advance_team(team)
+  end
+end
+
 function DoubleElimination:pluck_random_team()
   return self.active_bracket:pluck_random_team()
 end
@@ -197,6 +261,7 @@ end
 
 ---@class TournamentStructures
 local TournamentStructures = {
+  includes = includes,
   TournamentTeam = TournamentTeam,
   TournamentMatch = TournamentMatch,
   TournamentBracket = TournamentBracket,
