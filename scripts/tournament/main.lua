@@ -8,7 +8,7 @@ local Direction = require("scripts/libs/direction")
 local structures = require("scripts/tournament/structures")
 local TournamentTeam = structures.TournamentTeam
 local TournamentMatch = structures.TournamentMatch
-local DoubleElimination = structures.DoubleElimination
+local Tournament = structures.SingleElimination
 local includes = structures.includes
 
 local BREAK_TIME = 10 -- in seconds
@@ -18,7 +18,8 @@ local area_id = "default"
 ---@type string[][]
 local signed_up = {
   { "a" },
-  { "b" }
+  { "b" },
+  { "c" }
 }
 
 ---@class ContestantData
@@ -58,7 +59,7 @@ local function initialize_tournament()
     teams[#teams + 1] = team
   end
 
-  tournament = DoubleElimination.new(teams)
+  tournament = Tournament.new(teams)
   set_area_message("Waiting")
 end
 

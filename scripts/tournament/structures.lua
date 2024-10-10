@@ -151,6 +151,68 @@ function TournamentBracket:pluck_random_team()
   return table.remove(self.current, math.random(#self.current))
 end
 
+---Simple single-elimination tournament with randomized / unfair "bye"
+---@class SingleElimination
+---@field bracket TournamentBracket
+local SingleElimination = {}
+SingleElimination.__index = SingleElimination
+
+---@param teams TournamentTeam[]
+function SingleElimination.new(teams)
+  local bracket = TournamentBracket.new()
+  bracket.current = teams
+
+  local se = {
+    bracket = bracket,
+  }
+  setmetatable(se, SingleElimination)
+  return se
+end
+
+---@param team TournamentTeam
+function SingleElimination:advance_team(team)
+  self.bracket:advance_team(team)
+end
+
+---@param team TournamentTeam
+function SingleElimination:try_second_chance(team)
+  -- no second chances in a single elimination tournament
+end
+
+function SingleElimination:pluck_random_team()
+  return self.bracket:pluck_random_team()
+end
+
+function SingleElimination:disqualify_team(team)
+  self.bracket:disqualify_team(team)
+end
+
+---Call before resolving the next battle.
+---This function additionally resolves the active bracket.
+---
+---Returns true if the tournament is over, a winning team is not guaranteed
+---@return boolean, TournamentTeam?
+function SingleElimination:declare_winner()
+  if #self.bracket:remaining_teams() > 1 then
+    -- we have enough teams to start battling
+    return false
+  end
+
+  self.bracket:advance()
+
+  if #self.bracket:remaining_teams() == 1 then
+    -- just one player left, declare winner
+    local winning_team = self.bracket:pluck_random_team()
+
+    return true, winning_team
+  elseif #self.bracket:remaining_teams() == 0 then
+    -- no players left? someone must have disconnected
+    return true
+  end
+
+  return false
+end
+
 ---@class DoubleElimination
 ---@field active_bracket TournamentBracket
 ---@field winners_bracket TournamentBracket
@@ -265,6 +327,7 @@ local TournamentStructures = {
   TournamentTeam = TournamentTeam,
   TournamentMatch = TournamentMatch,
   TournamentBracket = TournamentBracket,
+  SingleElimination = SingleElimination,
   DoubleElimination = DoubleElimination
 }
 
