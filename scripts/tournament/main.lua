@@ -161,7 +161,7 @@ local prepare_next_battle = Async.create_function(function()
   local SLIDE_TIME = 0.5
 
   for _, id in ipairs(Net.list_players(arena.area_id)) do
-    Net.slide_player_camera(id, arena.center_x, arena.center_x, arena.z, SLIDE_TIME)
+    Net.slide_player_camera(id, arena.center_x, arena.center_y, arena.z, SLIDE_TIME)
   end
 
   -- wait for camera
