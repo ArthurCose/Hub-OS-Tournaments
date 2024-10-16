@@ -1,5 +1,7 @@
 local init_emotes_for = require("emotes/emotes.lua")
 local handle_team_disparity = require("handle_team_disparity.lua")
+---@type CardSelectTimer
+local CardSelectTimer = require("card_select_timer.lua")
 ---@type InputDisplay
 local InputDisplay = require("input_display/input_display.lua")
 
@@ -71,6 +73,9 @@ end
 ---@param encounter Encounter
 ---@param data { red_count: number, blue_count: number }
 function encounter_init(encounter, data)
+  -- init card select timer
+  CardSelectTimer.init(encounter:field())
+
   -- background and music
   encounter:set_background("battle-bg.png", "battle-bg.animation")
 
