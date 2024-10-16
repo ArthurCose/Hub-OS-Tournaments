@@ -1,9 +1,7 @@
-local init_emotes_for = require("emotes/emotes.lua")
-local handle_team_disparity = require("handle_team_disparity.lua")
----@type CardSelectTimer
-local CardSelectTimer = require("card_select_timer.lua")
----@type InputDisplay
-local InputDisplay = require("input_display/input_display.lua")
+local init_emotes_for = require("emotes/emotes")
+local handle_team_disparity = require("handle_team_disparity")
+local CardSelectTimer = require("card_select_timer")
+local InputDisplay = require("input_display/input_display")
 
 local player_count = 0
 local cards_ready = 0
