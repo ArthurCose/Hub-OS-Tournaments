@@ -5,7 +5,7 @@ local timer_root_node = Hud:create_node()
 local SECONDS = 60
 
 local TurnTimer = {
-  VISIBLE_TIME = 5 * SECONDS,
+  VISIBLE_TIME = 3 * SECONDS,
   MAX_TIME = 2048 -- double slow gauge
 }
 

@@ -4,7 +4,7 @@ local SECONDS = 60
 local MINUTES = SECONDS * 60
 
 local AfkTimer = {
-  MAX_TIME = 5 * MINUTES
+  MAX_TIME = 3 * MINUTES
 }
 
 local TESTS = {
