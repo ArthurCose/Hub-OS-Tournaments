@@ -1,6 +1,4 @@
-local SHADOW_COLOR = Color.new(82, 99, 115)
-local TEXT_STYLE = TextStyle.new("THICK")
-TEXT_STYLE.monospace = true
+local Shared = require("shared")
 
 local timer_root_node = Hud:create_node()
 timer_root_node:set_offset(240 - 16, 8 * 7)
@@ -17,12 +15,12 @@ local CardSelectTimer = {
 
 ---@param field Field
 function CardSelectTimer.init(field)
-  local artifact = Artifact.new()
-
   local open = false
   local accounted_for_last_player = false
   local elapsed_time
   local text_node, text_shadow_node
+
+  local artifact = Shared.request_artifact(field)
 
   local start_component = artifact:create_component(Lifetime.CardSelectOpen)
   start_component.on_update_func = function()
@@ -104,22 +102,20 @@ function CardSelectTimer.init(field)
     -- create text nodes for the current frame
 
     local remaining_time = CardSelectTimer.MAX_TIME - elapsed_time
-    local remaining_seconds = math.ceil(remaining_time / 60)
+    local remaining_seconds = math.ceil(remaining_time / SECONDS)
     local text = tostring(remaining_seconds)
 
     if #text == 1 then
       text = " " .. text
     end
 
-    text_node = timer_root_node:create_text_node(TEXT_STYLE, text)
+    text_node = timer_root_node:create_text_node(Shared.TEXT_STYLE, text)
     text_node:set_layer(-1)
 
-    text_shadow_node = timer_root_node:create_text_node(TEXT_STYLE, text)
-    text_shadow_node:set_color(SHADOW_COLOR)
+    text_shadow_node = timer_root_node:create_text_node(Shared.TEXT_STYLE, text)
+    text_shadow_node:set_color(Shared.SHADOW_COLOR)
     text_shadow_node:set_offset(1, 1)
   end
-
-  field:spawn(artifact, 0, field:height() - 1)
 end
 
 return CardSelectTimer

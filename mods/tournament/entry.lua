@@ -1,7 +1,11 @@
 local init_emotes_for = require("emotes/emotes")
 local handle_team_disparity = require("handle_team_disparity")
-local CardSelectTimer = require("card_select_timer")
+local CardSelectTimer = require("timers/card_select_timer")
+local TurnTimer = require("timers/turn_timer")
+local AfkTimer = require("timers/afk_timer")
 local InputDisplay = require("input_display/input_display")
+
+CardSelectTimer.MAX_TIME = 60 * 60
 
 local player_count = 0
 local cards_ready = 0
@@ -71,8 +75,11 @@ end
 ---@param encounter Encounter
 ---@param data { red_count: number, blue_count: number }
 function encounter_init(encounter, data)
-  -- init card select timer
-  CardSelectTimer.init(encounter:field())
+  -- init timers
+  local field = encounter:field()
+  CardSelectTimer.init(field)
+  TurnTimer.init(field)
+  AfkTimer.init(field)
 
   -- background and music
   encounter:set_background("battle-bg.png", "battle-bg.animation")
@@ -128,7 +135,6 @@ function encounter_init(encounter, data)
 
   -- hack to detect the players we moved to 0, 0 and convert them to spectators
   local entity = Artifact.new()
-  local field = encounter:field()
 
   entity.on_spawn_func = function()
     field:find_players(function(player)
