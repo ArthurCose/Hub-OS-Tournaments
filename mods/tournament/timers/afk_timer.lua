@@ -27,6 +27,8 @@ local function input_updated(player)
   return false
 end
 
+local ignoring = {}
+
 ---@param field Field
 function AfkTimer.init(field)
   local artifact = Shared.request_artifact(field)
@@ -48,6 +50,10 @@ function AfkTimer.init(field)
 
         afk_time = afk_time + 1
 
+        if ignoring[player:id()] then
+          return
+        end
+
         if afk_time > AfkTimer.MAX_TIME then
           player:delete()
         end
@@ -56,6 +62,12 @@ function AfkTimer.init(field)
       return false
     end)
   end
+end
+
+---@param player Entity
+---@param ignored boolean
+function AfkTimer.set_ignored(player, ignored)
+  ignoring[player:id()] = ignored
 end
 
 return AfkTimer

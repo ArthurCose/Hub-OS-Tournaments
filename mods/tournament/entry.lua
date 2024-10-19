@@ -45,6 +45,8 @@ end
 
 ---@param spectator Entity
 local function init_spectator(spectator)
+  AfkTimer.set_ignored(spectator, true)
+
   spectators[#spectators + 1] = spectator
 
   spectator:set_team(Team.Other)
