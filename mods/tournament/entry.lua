@@ -1,4 +1,4 @@
-local init_emotes_for = require("emotes/emotes")
+local init_ui_for = require("ui/ui")
 local handle_team_disparity = require("handle_team_disparity")
 local CardSelectTimer = require("timers/card_select_timer")
 local TurnTimer = require("timers/turn_timer")
@@ -72,7 +72,7 @@ local function init_spectator(spectator)
     spectator:confirm_staged_items()
   end
 
-  init_emotes_for(spectator)
+  init_ui_for(spectator)
 end
 
 ---@param encounter Encounter

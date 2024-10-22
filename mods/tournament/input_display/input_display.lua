@@ -127,6 +127,10 @@ function InputDisplay.track(player)
   end
 end
 
+function InputDisplay.visible()
+  return is_visible
+end
+
 function InputDisplay.set_visible(visible)
   is_visible = visible
 end
