@@ -369,10 +369,6 @@ Entity = {}
 AttackContext = {}
 
 ---
----@class TextStyle
-TextStyle = {}
-
----
 ---@class Sprite
 Sprite = {}
 
@@ -643,6 +639,25 @@ Hud = {}
 ---@field r number
 
 Color = {}
+
+---
+---@class TextStyle
+--- Number or nil. Additional vertical space given to new lines. Line height is calculated using the height of either the space character or `A`, added to the line spacing.
+---
+--- When unset the text style will use the engine default value of 1.
+---@field line_spacing number|nil
+--- Number or nil. Additional horizontal space between glyphs.
+---
+--- When unset the text style will use the engine default value of 1.
+---@field letter_spacing number|nil
+--- Number or nil. The minimum amount of space allocated for a single glyph for resolving glyph placement.
+---
+--- When unset the text style will use the engine default value of 0.
+---@field min_glyph_width number|nil
+--- Boolean or nil. When set to true, text created using this text style will use the width of either the space character or `A` to decide how much width will be allocated for a single glyph, instead of the width of the glyph itself.
+---@field monospace boolean|nil
+
+TextStyle = {}
 
 --- See [entity:queue_movement](https://docs.hubos.dev/client/lua-api/entity-api/entity#entityqueue_movementmovement)
 ---@class Movement
@@ -2620,6 +2635,13 @@ function Color.mix(color_a, color_b, progress) end
 ---@return TextStyle
 function TextStyle.new(font_name, texture_path, animation_path) end
 
+--- Returns TextStyle, see [TextStyle.new()](https://docs.hubos.dev/client/lua-api/resource-api/sprite#textstylenewfont_name-texture_path-animation_path)
+---@param font_name string
+---@param texture_path? string
+---@param animation_path? string
+---@return TextStyle
+function TextStyle.new_monospace(font_name, texture_path, animation_path) end
+
 --- Returns a reference to the sync node's sprite.
 ---@return Sprite
 function SyncNode:sprite() end
@@ -3280,6 +3302,12 @@ function Hit.duration_for(hit_flag, level) end
 ---@return number
 function Hit.mutual_exclusions_for(hit_flag) end
 
+--- Returns true if `element_a` is weak to `element_b`.
+---@param element_a Element
+---@param element_b Element
+---@return boolean
+function Element.is_weak_to(element_a, element_b) end
+
 --- Returns a new Drag instance.
 ---@param direction? Direction
 ---@param distance? number
@@ -3307,6 +3335,14 @@ function Status:remaining_time() end
 --- - `duration` number, how many battle frames the effect should last.
 ---@param duration number
 function Status:set_remaining_time(duration) end
+
+--- Returns true if the turn gauge is visible, automatically progressing, and allows the turn to end.
+---@return boolean
+function TurnGauge.enabled() end
+
+--- Hides the turn gauge, disables automatic progression, and prevents the turn from ending when disabled.
+---@param enabled boolean
+function TurnGauge.set_enabled(enabled) end
 
 --- Returns true if time is frozen from [time freeze](https://docs.hubos.dev/client/lua-api/attack-api/cards#card_propertiestime_freeze) [Actions](https://docs.hubos.dev/client/lua-api/attack-api/action).
 ---@return boolean
@@ -3337,8 +3373,16 @@ function TurnGauge.set_max_time(time) end
 --- Sets the total elapsed frames required to end a turn to the default (512).
 function TurnGauge.reset_max_time() end
 
+--- Returns a number, represents the current turn number. Starts at 0 during the intro, increments when Card Select opens.
+---@return number
+function TurnGauge.current_turn() end
+
 --- Ends the turn, causing Card Select to appear.
 function TurnGauge.complete_turn() end
+
+--- Returns a number or nil, modified through [encounter:set_turn_limit()](https://docs.hubos.dev/client/lua-api/field-api/encounter#encounterset_turn_limitlimit).
+---@return number
+function TurnGauge.turn_limit() end
 
 --- - `priority`
 ---   - `DefensePriority.Barrier`

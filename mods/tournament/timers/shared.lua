@@ -1,13 +1,10 @@
 local SHADOW_COLOR = Color.new(82, 99, 115)
-local TEXT_STYLE = TextStyle.new("THICK")
-TEXT_STYLE.monospace = true
+local TEXT_STYLE = TextStyle.new_monospace("THICK")
 
 local Shared = {
   SHADOW_COLOR = SHADOW_COLOR,
   TEXT_STYLE = TEXT_STYLE,
 }
-
-print("shared.lua!")
 
 -- reducing spawned entities
 local artifact

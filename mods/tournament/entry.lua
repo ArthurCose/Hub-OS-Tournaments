@@ -4,6 +4,7 @@ local CardSelectTimer = require("timers/card_select_timer")
 local TurnTimer = require("timers/turn_timer")
 local AfkTimer = require("timers/afk_timer")
 local InputDisplay = require("input_display/input_display")
+local HitDamageJudge = require("hit_damage_judge")
 
 CardSelectTimer.MAX_TIME = 60 * 60
 
@@ -82,6 +83,9 @@ function encounter_init(encounter, data)
   CardSelectTimer.init(field)
   TurnTimer.init(field)
   AfkTimer.init(field)
+  HitDamageJudge.init(field)
+
+  encounter:set_turn_limit(2)
 
   -- background and music
   encounter:set_background("battle-bg.png", "battle-bg.animation")

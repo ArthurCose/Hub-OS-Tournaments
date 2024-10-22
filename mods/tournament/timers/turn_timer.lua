@@ -29,6 +29,10 @@ function TurnTimer.init(field)
 
   local timer_component = artifact:create_component(Lifetime.ActiveBattle)
   timer_component.on_update_func = function()
+    if TurnGauge.current_turn() == TurnGauge.turn_limit() then
+      return
+    end
+
     if time >= TurnTimer.MAX_TIME then
       TurnGauge.complete_turn()
       return
@@ -55,7 +59,6 @@ function TurnTimer.init(field)
     text_shadow_node = timer_root_node:create_text_node(Shared.TEXT_STYLE, text)
     text_shadow_node:set_color(Shared.SHADOW_COLOR)
     text_shadow_node:set_offset(1, 1)
-
 
     -- centering
     local children = text_node:children()
