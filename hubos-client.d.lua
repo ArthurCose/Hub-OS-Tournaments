@@ -659,6 +659,15 @@ Color = {}
 
 TextStyle = {}
 
+---
+---@class TextMetrics
+--- The height of the text.
+---@field height number
+--- The width of the text.
+---@field width number
+
+TextMetrics = {}
+
 --- See [entity:queue_movement](https://docs.hubos.dev/client/lua-api/entity-api/entity#entityqueue_movementmovement)
 ---@class Movement
 --- Called when the movement completes or is cancelled.
@@ -2641,6 +2650,12 @@ function TextStyle.new(font_name, texture_path, animation_path) end
 ---@param animation_path? string
 ---@return TextStyle
 function TextStyle.new_monospace(font_name, texture_path, animation_path) end
+
+--- Returns TextMetrics
+---@param text_style TextStyle
+---@param text string
+---@return TextMetrics
+function TextStyle.measure(text_style, text) end
 
 --- Returns a reference to the sync node's sprite.
 ---@return Sprite

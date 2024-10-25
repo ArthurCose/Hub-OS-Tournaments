@@ -8,11 +8,6 @@ animation:apply(cursor_template_node)
 
 local cursor_origin = cursor_template_node:origin()
 
----@class SpectatorSubMenu
----@field enter fun(self: SpectatorSubMenu, spectator: Entity)
----@field leave fun(self: SpectatorSubMenu, spectator: Entity)
----@field handle_input fun(self: SpectatorSubMenu, spectator: Entity, stack: SpectatorSubMenu[])
-
 local CELL_W = 18
 local CELL_H = 18
 

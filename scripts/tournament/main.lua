@@ -18,8 +18,7 @@ local area_id = "default"
 ---@type string[][]
 local signed_up = {
   { "a" },
-  { "b" },
-  { "c" }
+  { "b" }
 }
 
 ---@class ContestantData

@@ -1,4 +1,5 @@
 local init_ui_for = require("ui/ui")
+local CardLog = require("ui/card_log")
 local handle_team_disparity = require("handle_team_disparity")
 local CardSelectTimer = require("timers/card_select_timer")
 local TurnTimer = require("timers/turn_timer")
@@ -84,6 +85,7 @@ function encounter_init(encounter, data)
   TurnTimer.init(field)
   AfkTimer.init(field)
   HitDamageJudge.init(field)
+  CardLog.init(field)
 
   encounter:set_turn_limit(2)
 

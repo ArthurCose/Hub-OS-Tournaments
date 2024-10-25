@@ -1,0 +1,4 @@
+animation state="DEFAULT"
+frame w="120" h="126"
+point label="LOG_START" x="3" y="3"
+point label="LOG_END" x="117" y="123"
