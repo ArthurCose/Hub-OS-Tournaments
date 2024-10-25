@@ -2,6 +2,7 @@ local LINE_HEIGHT = 8
 local CARD_ICON_WIDTH = 14
 local TEXT_STYLE = TextStyle.new_monospace("THICK")
 local SHADOW_COLOR = Color.new(33, 41, 41)
+local TURN_START_COLOR = Color.new(255, 255, 0)
 
 local animator = Animation.new("card_log.animation")
 animator:set_state("DEFAULT")
@@ -66,6 +67,8 @@ function CardLog.log_message(message)
   text_node:set_scale(0.5, 0.5)
 
   log_nodes[#log_nodes + 1] = text_node
+
+  return text_node
 end
 
 ---@param entity Entity
@@ -183,7 +186,8 @@ function CardLog.init(field)
   local turn_start_component = artifact:create_component(Lifetime.CardSelectComplete)
   turn_start_component.on_update_func = function()
     CardLog.clear()
-    CardLog.log_message("-- Turn " .. TurnGauge.current_turn() .. " Start --")
+    local node = CardLog.log_message("--- Turn " .. TurnGauge.current_turn() .. " Start ---")
+    node:set_color(TURN_START_COLOR)
   end
 
   field:spawn(artifact, 0, 0)
