@@ -1,4 +1,4 @@
-local LINE_HEIGHT = 15
+local LINE_HEIGHT = 8
 local CARD_ICON_WIDTH = 14
 local TEXT_STYLE = TextStyle.new_monospace("THICK")
 local SHADOW_COLOR = Color.new(33, 41, 41)
@@ -53,13 +53,17 @@ function CardLog.log_message(message)
   local log_bottom = shift_and_resolve_bottom()
 
   local metrics = TextStyle.measure(TEXT_STYLE, message)
+  local width = metrics.width // 2
+
   local text_node = root_node:create_text_node(TEXT_STYLE, message)
-  text_node:set_offset(LOG_START.x + (LOG_WIDTH - metrics.width) // 2, log_bottom)
+  text_node:set_offset(LOG_START.x + (LOG_WIDTH - width) // 2, log_bottom)
 
   local shadow_node = text_node:create_text_node(TEXT_STYLE, message)
   shadow_node:set_color(SHADOW_COLOR)
   shadow_node:set_offset(1, 1)
   shadow_node:set_layer(1)
+
+  text_node:set_scale(0.5, 0.5)
 
   log_nodes[#log_nodes + 1] = text_node
 end
@@ -90,8 +94,10 @@ function CardLog.log_card(entity, card_props)
   shadow_node:set_offset(1, 1)
   shadow_node:set_layer(1)
 
+  log_node:set_scale(0.5, 0.5)
+
   -- align
-  local width = CARD_ICON_WIDTH + 2 + metrics.width
+  local width = (CARD_ICON_WIDTH + 2 + metrics.width) // 2
   local team = entity:team()
 
   if team == Team.Red then
@@ -177,7 +183,7 @@ function CardLog.init(field)
   local turn_start_component = artifact:create_component(Lifetime.CardSelectComplete)
   turn_start_component.on_update_func = function()
     CardLog.clear()
-    CardLog.log_message("Turn " .. TurnGauge.current_turn() .. " Start")
+    CardLog.log_message("-- Turn " .. TurnGauge.current_turn() .. " Start --")
   end
 
   field:spawn(artifact, 0, 0)

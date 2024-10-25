@@ -1,4 +1,4 @@
 animation state="DEFAULT"
-frame w="120" h="126"
+frame w="120" h="118"
 point label="LOG_START" x="3" y="3"
-point label="LOG_END" x="117" y="123"
+point label="LOG_END" x="117" y="115"
