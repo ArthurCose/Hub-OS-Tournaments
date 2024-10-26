@@ -174,6 +174,7 @@ function CardLog.init(field)
     -- find and track players
     field:find_players(function(player)
       local aux_prop = AuxProp.new()
+          :require_action(ActionType.Card)
           :intercept_action(function(action)
             local card_props = action:copy_card_properties()
             CardLog.log_card(player, card_props)
