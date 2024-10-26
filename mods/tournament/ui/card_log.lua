@@ -1,8 +1,9 @@
 local LINE_HEIGHT = 8
 local CARD_ICON_WIDTH = 14
 local TEXT_STYLE = TextStyle.new_monospace("THICK")
+local BATTLE_TEXT_STYLE = TextStyle.new("BATTLE")
+BATTLE_TEXT_STYLE.letter_spacing = 0
 local SHADOW_COLOR = Color.new(33, 41, 41)
-local TURN_START_COLOR = Color.new(255, 255, 0)
 
 local animator = Animation.new("card_log.animation")
 animator:set_state("DEFAULT")
@@ -49,20 +50,25 @@ local function shift_and_resolve_bottom()
   return log_bottom
 end
 
-function CardLog.log_message(message)
+---@param text_style TextStyle
+---@param shadow_color Color?
+---@param message string
+function CardLog.log_message(text_style, shadow_color, message)
   -- shift everything up and resolve the bottom of the log
   local log_bottom = shift_and_resolve_bottom()
 
-  local metrics = TextStyle.measure(TEXT_STYLE, message)
+  local metrics = TextStyle.measure(text_style, message)
   local width = metrics.width // 2
 
-  local text_node = root_node:create_text_node(TEXT_STYLE, message)
+  local text_node = root_node:create_text_node(text_style, message)
   text_node:set_offset(LOG_START.x + (LOG_WIDTH - width) // 2, log_bottom)
 
-  local shadow_node = text_node:create_text_node(TEXT_STYLE, message)
-  shadow_node:set_color(SHADOW_COLOR)
-  shadow_node:set_offset(1, 1)
-  shadow_node:set_layer(1)
+  if shadow_color then
+    local shadow_node = text_node:create_text_node(text_style, message)
+    shadow_node:set_color(shadow_color)
+    shadow_node:set_offset(1, 1)
+    shadow_node:set_layer(1)
+  end
 
   text_node:set_scale(0.5, 0.5)
 
@@ -186,8 +192,11 @@ function CardLog.init(field)
   local turn_start_component = artifact:create_component(Lifetime.CardSelectComplete)
   turn_start_component.on_update_func = function()
     CardLog.clear()
-    local node = CardLog.log_message("--- Turn " .. TurnGauge.current_turn() .. " Start ---")
-    node:set_color(TURN_START_COLOR)
+
+    local node = CardLog.log_message(BATTLE_TEXT_STYLE, nil, "<TURN_" .. TurnGauge.current_turn() .. "_START>")
+    local offset = node:offset()
+
+    node:set_offset(offset.x, offset.y - 1)
   end
 
   field:spawn(artifact, 0, 0)
