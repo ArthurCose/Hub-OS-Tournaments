@@ -2,3 +2,7 @@ animation state="DEFAULT"
 frame w="120" h="118"
 point label="LOG_START" x="3" y="3"
 point label="LOG_END" x="117" y="115"
+
+animation state="ALERT"
+frame x="121" y="1" w="15" h="15"
+point label="TEXT" x="7" y="2"

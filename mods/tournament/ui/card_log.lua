@@ -1,9 +1,12 @@
 local LINE_HEIGHT = 8
 local CARD_ICON_WIDTH = 14
+local TEXTURE = Resources.load_texture("card_log.png")
 local TEXT_STYLE = TextStyle.new_monospace("THICK")
 local BATTLE_TEXT_STYLE = TextStyle.new("BATTLE")
 BATTLE_TEXT_STYLE.letter_spacing = 0
 local SHADOW_COLOR = Color.new(33, 41, 41)
+local TFC_COLOR = Color.new(213, 122, 231)
+local TFC_SHADOW_COLOR = Color.new(172, 49, 213)
 
 local CLASS_COLORS = {
   [CardClass.Mega] = Color.new(143, 248, 248),
@@ -20,7 +23,7 @@ root_node:set_visible(false)
 root_node:set_layer(-1)
 
 local background_node = root_node:create_node()
-background_node:set_texture(Resources.load_texture("card_log.png"))
+background_node:set_texture(TEXTURE)
 background_node:set_color(Color.new(0, 0, 0, 192))
 background_node:set_layer(1)
 animator:apply(background_node)
@@ -83,6 +86,8 @@ function CardLog.log_message(text_style, shadow_color, message)
   return text_node
 end
 
+local tfc_chain_count = 0
+
 ---@param entity Entity
 ---@param card_props CardProperties
 function CardLog.log_card(entity, card_props)
@@ -112,7 +117,8 @@ function CardLog.log_card(entity, card_props)
   log_node:set_scale(0.5, 0.5)
 
   -- align
-  local width = (CARD_ICON_WIDTH + 2 + metrics.width) // 2
+  local width = CARD_ICON_WIDTH + 2 + metrics.width
+  local scaled_width = width // 2
   local team = entity:team()
 
   if team == Team.Red then
@@ -120,10 +126,10 @@ function CardLog.log_card(entity, card_props)
     log_node:set_offset(LOG_START.x, log_bottom)
   elseif team == Team.Blue then
     -- right align
-    log_node:set_offset(LOG_START.x + LOG_WIDTH - width, log_bottom)
+    log_node:set_offset(LOG_START.x + LOG_WIDTH - scaled_width, log_bottom)
   else
     -- center
-    log_node:set_offset(LOG_START.x + (LOG_WIDTH - width) // 2, log_bottom)
+    log_node:set_offset(LOG_START.x + (LOG_WIDTH - scaled_width) // 2, log_bottom)
   end
 
   -- color
@@ -131,6 +137,38 @@ function CardLog.log_card(entity, card_props)
 
   if text_color then
     text_node:set_color(text_color)
+  end
+
+  -- tfc
+  if card_props.time_freeze and TurnGauge.frozen() then
+    animator:set_state("ALERT")
+    local alert_node = log_node:create_node()
+    alert_node:set_texture(TEXTURE)
+    animator:apply(alert_node)
+
+    if team == Team.Red then
+      alert_node:set_offset(width + 1, 0)
+    else
+      alert_node:set_offset(-alert_node:width() - 1, 0)
+    end
+
+    -- count
+    tfc_chain_count = tfc_chain_count + 1
+    local count_text = tostring(tfc_chain_count)
+    local alert_text_point = animator:get_point("TEXT")
+
+    local count_width = TextStyle.measure(TEXT_STYLE, count_text).width
+
+    local count_node = alert_node:create_text_node(TEXT_STYLE, count_text)
+    count_node:set_offset(alert_text_point.x - count_width // 2, alert_text_point.y)
+    count_node:set_color(TFC_COLOR)
+
+    local count_shadow_node = count_node:create_text_node(TEXT_STYLE, count_text)
+    count_shadow_node:set_color(TFC_SHADOW_COLOR)
+    count_shadow_node:set_offset(1, 1)
+    count_shadow_node:set_layer(1)
+  else
+    tfc_chain_count = 0
   end
 end
 
