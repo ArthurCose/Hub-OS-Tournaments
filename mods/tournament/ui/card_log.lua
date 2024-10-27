@@ -5,6 +5,12 @@ local BATTLE_TEXT_STYLE = TextStyle.new("BATTLE")
 BATTLE_TEXT_STYLE.letter_spacing = 0
 local SHADOW_COLOR = Color.new(33, 41, 41)
 
+local CLASS_COLORS = {
+  [CardClass.Mega] = Color.new(143, 248, 248),
+  [CardClass.Giga] = Color.new(255, 158, 218),
+  [CardClass.Dark] = Color.new(176, 134, 208)
+}
+
 local animator = Animation.new("card_log.animation")
 animator:set_state("DEFAULT")
 
@@ -118,6 +124,13 @@ function CardLog.log_card(entity, card_props)
   else
     -- center
     log_node:set_offset(LOG_START.x + (LOG_WIDTH - width) // 2, log_bottom)
+  end
+
+  -- color
+  local text_color = CLASS_COLORS[card_props.card_class]
+
+  if text_color then
+    text_node:set_color(text_color)
   end
 end
 
