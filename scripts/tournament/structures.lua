@@ -12,6 +12,7 @@ end
 ---@class TournamentTeam
 ---@field members string[]
 ---@field connected_count number
+---@field win_count number
 ---@field chances number
 local TournamentTeam = {}
 TournamentTeam.__index = TournamentTeam
@@ -23,6 +24,7 @@ function TournamentTeam.new(members)
     members = members,
     connected = {},
     connected_count = 0,
+    win_count = 0,
     chances = 2
   }
 
@@ -154,16 +156,18 @@ end
 ---Simple single-elimination tournament with randomized / unfair "bye"
 ---@class SingleElimination
 ---@field bracket TournamentBracket
+---@field teams TournamentTeam[]
 local SingleElimination = {}
 SingleElimination.__index = SingleElimination
 
 ---@param teams TournamentTeam[]
 function SingleElimination.new(teams)
   local bracket = TournamentBracket.new()
-  bracket.current = teams
+  bracket.current = table.pack(table.unpack(teams))
 
   local se = {
     bracket = bracket,
+    teams = teams
   }
   setmetatable(se, SingleElimination)
   return se
@@ -229,6 +233,7 @@ end
 ---@field active_bracket TournamentBracket
 ---@field winners_bracket TournamentBracket
 ---@field losers_bracket TournamentBracket
+---@field teams TournamentTeam[]
 local DoubleElimination = {}
 DoubleElimination.__index = DoubleElimination
 
@@ -237,7 +242,7 @@ function DoubleElimination.new(teams)
   local winners_bracket = TournamentBracket.new()
   local losers_bracket = TournamentBracket.new()
 
-  winners_bracket.current = teams
+  winners_bracket.current = table.pack(table.unpack(teams))
 
   -- handle an odd number of teams
   if #winners_bracket:remaining_teams() % 2 == 1 then
@@ -248,7 +253,8 @@ function DoubleElimination.new(teams)
   local de = {
     active_bracket = winners_bracket,
     winners_bracket = winners_bracket,
-    losers_bracket = losers_bracket
+    losers_bracket = losers_bracket,
+    teams = teams
   }
 
   setmetatable(de, DoubleElimination)

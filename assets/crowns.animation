@@ -1,5 +1,71 @@
-animation state="CROWN"
-frame x="1" y="7" w="11" h="7" originx="6" originy="6"
+animation state="0"
+frame x="1" y="16" w="7" h="7" originx="4" originy="14"
 
-animation state="ROYAL CROWN"
-frame x="13" y="1" w="17" h="14" originx="9" originy="13"
+animation state="1"
+frame x="9" y="16" w="7" h="7" originx="4" originy="14"
+
+animation state="2"
+frame x="17" y="16" w="7" h="7" originx="4" originy="14"
+
+animation state="3"
+frame x="25" y="16" w="7" h="7" originx="4" originy="14"
+
+animation state="4"
+frame x="33" y="16" w="7" h="7" originx="4" originy="14"
+
+animation state="5"
+frame x="1" y="24" w="7" h="7" originx="4" originy="14"
+
+animation state="6"
+frame x="9" y="24" w="7" h="7" originx="4" originy="14"
+
+animation state="7"
+frame x="17" y="24" w="7" h="7" originx="4" originy="14"
+
+animation state="8"
+frame x="25" y="24" w="7" h="7" originx="4" originy="13"
+
+animation state="9"
+frame x="33" y="24" w="7" h="7" originx="4" originy="14"
+
+animation state="+"
+frame x="33" y="8" w="7" h="7" originx="4" originy="14"
+
+animation state="ROYAL_0"
+frame x="1" y="16" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_1"
+frame x="9" y="16" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_2"
+frame x="17" y="16" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_3"
+frame x="25" y="16" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_4"
+frame x="33" y="16" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_5"
+frame x="1" y="24" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_6"
+frame x="9" y="24" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_7"
+frame x="17" y="24" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_8"
+frame x="25" y="24" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_9"
+frame x="33" y="24" w="7" h="7" originx="4" originy="21"
+
+animation state="ROYAL_+"
+frame x="33" y="8" w="7" h="7" originx="4" originy="21"
+
+animation state="CROWN"
+frame x="19" y="8" w="11" h="7" originx="6" originy="6"
+
+animation state="ROYAL_CROWN"
+frame x="1" y="1" w="17" h="14" originx="9" originy="13"

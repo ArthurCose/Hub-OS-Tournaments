@@ -114,6 +114,13 @@ local function return_contestant(contestant)
   Net.unlock_player_input(contestant.id)
 end
 
+local function win_string(count)
+  if count < 10 then
+    return tostring(count)
+  end
+  return "+"
+end
+
 local function resolve_winner()
   local complete, winning_team = tournament:declare_winner()
 
@@ -122,7 +129,26 @@ local function resolve_winner()
   end
 
   set_area_message("Tournament Over")
+
+  -- update crowns
   Crowns.revoke_crowns()
+
+  for _, team in ipairs(tournament.teams) do
+    local prefix = ""
+
+    if team == winning_team then
+      prefix = "ROYAL_"
+    end
+
+    for _, name in ipairs(team.members) do
+      local contestant = contestant_map[name]
+
+      if contestant then
+        Crowns.award_crown(contestant.id, prefix .. "CROWN")
+        Crowns.award_crown(contestant.id, prefix .. win_string(team.win_count))
+      end
+    end
+  end
 
   if not winning_team then
     -- no winning_team? someone must have disconnected
@@ -131,14 +157,6 @@ local function resolve_winner()
   end
 
   print("Tournament Winner: " .. winning_team:to_string())
-
-  for _, name in ipairs(winning_team.members) do
-    local contestant = contestant_map[name]
-
-    if contestant then
-      Crowns.award_crown(contestant.id, "ROYAL CROWN")
-    end
-  end
 
   return complete
 end
@@ -427,6 +445,7 @@ Net:on("battle_results", function(event)
 
     -- advance winning team
     tournament:advance_team(team)
+    team.win_count = team.win_count + 1
 
     -- award crowns
     for _, member_name in ipairs(team.members) do
@@ -434,6 +453,7 @@ Net:on("battle_results", function(event)
 
       if contestant then
         Crowns.award_crown(contestant.id, "CROWN")
+        Crowns.award_crown(contestant.id, win_string(team.win_count))
       end
     end
 
