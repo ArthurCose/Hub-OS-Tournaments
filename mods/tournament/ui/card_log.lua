@@ -8,7 +8,7 @@ local SHADOW_COLOR = Color.new(33, 41, 41)
 local CLASS_COLORS = {
   [CardClass.Mega] = Color.new(143, 248, 248),
   [CardClass.Giga] = Color.new(255, 158, 218),
-  [CardClass.Dark] = Color.new(176, 134, 208)
+  [CardClass.Dark] = Color.new(164, 90, 231)
 }
 
 local animator = Animation.new("card_log.animation")
