@@ -93,6 +93,11 @@ function CardLog.log_card(entity, card_props)
     return
   end
 
+  if card_props.conceal then
+    card_props.package_id = ""
+    card_props.short_name = "????"
+  end
+
   -- shift everything up and resolve the bottom of the log
   local log_bottom = shift_and_resolve_bottom()
 
