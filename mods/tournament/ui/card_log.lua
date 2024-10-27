@@ -86,8 +86,6 @@ function CardLog.log_message(text_style, shadow_color, message)
   return text_node
 end
 
-local tfc_chain_count = 0
-
 ---@param entity Entity
 ---@param card_props CardProperties
 function CardLog.log_card(entity, card_props)
@@ -139,36 +137,26 @@ function CardLog.log_card(entity, card_props)
     text_node:set_color(text_color)
   end
 
-  -- tfc
-  if card_props.time_freeze and TurnGauge.frozen() then
-    animator:set_state("ALERT")
+  -- time freeze indicator
+  if card_props.time_freeze then
     local alert_node = log_node:create_node()
     alert_node:set_texture(TEXTURE)
+
+    if TurnGauge.frozen() then
+      --tfc
+      animator:set_state("ALERT")
+    else
+      animator:set_state("TIME_FREEZE")
+    end
+
     animator:apply(alert_node)
 
+    -- align indicator
     if team == Team.Red then
-      alert_node:set_offset(width + 1, 0)
+      alert_node:set_offset(width + 2, 0)
     else
       alert_node:set_offset(-alert_node:width() - 1, 0)
     end
-
-    -- count
-    tfc_chain_count = tfc_chain_count + 1
-    local count_text = tostring(tfc_chain_count)
-    local alert_text_point = animator:get_point("TEXT")
-
-    local count_width = TextStyle.measure(TEXT_STYLE, count_text).width
-
-    local count_node = alert_node:create_text_node(TEXT_STYLE, count_text)
-    count_node:set_offset(alert_text_point.x - count_width // 2, alert_text_point.y)
-    count_node:set_color(TFC_COLOR)
-
-    local count_shadow_node = count_node:create_text_node(TEXT_STYLE, count_text)
-    count_shadow_node:set_color(TFC_SHADOW_COLOR)
-    count_shadow_node:set_offset(1, 1)
-    count_shadow_node:set_layer(1)
-  else
-    tfc_chain_count = 0
   end
 end
 
