@@ -87,7 +87,7 @@ function encounter_init(encounter, data)
   HitDamageJudge.init(field)
   CardLog.init(field)
 
-  encounter:set_turn_limit(2)
+  encounter:set_turn_limit(15)
 
   -- background and music
   encounter:set_background("battle-bg.png", "battle-bg.animation")
