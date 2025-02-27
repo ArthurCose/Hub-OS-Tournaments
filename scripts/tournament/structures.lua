@@ -47,8 +47,8 @@ end
 local TournamentMatch = {}
 TournamentMatch.__index = TournamentMatch
 
+---@return TournamentMatch
 function TournamentMatch.new(red_team, blue_team)
-  ---@type TournamentMatch
   local match = {
     red_team = red_team,
     blue_team = blue_team,
