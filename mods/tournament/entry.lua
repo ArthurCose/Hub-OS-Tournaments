@@ -137,6 +137,10 @@ function encounter_init(encounter, data)
   end
 
   -- spawn spectator players at 0, 0 to mark as spectators
+  local spectator_tile = field:tile_at(0, 0) --[[@as Tile]]
+  spectator_tile:set_team(Team.Red, Direction.Right)
+  spectator_tile:set_team(Team.Other, spectator_tile:facing())
+
   for i = player_count, encounter:player_count() - 1 do
     encounter:spawn_player(i, 0, 0)
   end
@@ -145,6 +149,8 @@ function encounter_init(encounter, data)
   local entity = Artifact.new()
 
   entity.on_spawn_func = function()
+    spectator_tile:set_team(spectator_tile:original_team(), spectator_tile:facing())
+
     field:find_players(function(player)
       local tile = player:current_tile()
 
