@@ -261,14 +261,20 @@ local prepare_next_battle = Async.create_function(function()
       end
     end
 
+
     print("Initiating battle: " .. match.red_team:to_string() .. " vs " .. match.blue_team:to_string())
+
+    local red_count = #match.blue_team.members
+    local blue_count = #match.blue_team.members
+    local spectator_count = #list - (red_count + blue_count)
 
     Net.initiate_netplay(
       list,
       "/server/mods/tournament",
       {
-        red_count = #match.red_team.members,
-        blue_count = #match.blue_team.members
+        red_count = red_count,
+        blue_count = blue_count,
+        spectator_count = spectator_count
       }
     )
   end)

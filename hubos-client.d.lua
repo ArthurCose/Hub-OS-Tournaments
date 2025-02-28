@@ -9,13 +9,6 @@ _folder_path = nil
 
 ---@class Namespace
 
----@enum Shadow
-Shadow = {
-  None = 0,
-  Small = 0,
-  Big = 0,
-}
-
 ---@enum Lifetime
 Lifetime = {
   Local = 0,
@@ -197,6 +190,13 @@ ActionType = {
   Scripted = 0,
 }
 
+---@enum Shadow
+Shadow = {
+  None = "",
+  Small = "",
+  Big = "",
+}
+
 ---
 ---@enum Hit
 ---@type { [string]: Hit }
@@ -289,16 +289,22 @@ Input = {
 ---@field on_attack_func fun(self: Entity, entity: Entity)
 --- Called when the spell hits an entity and isn't blocked by [intangibility](https://docs.hubos.dev/client/lua-api/entity-api/living#livingset_intangibleintangible-intangible_rule).
 ---@field on_collision_func fun(self: Entity, entity: Entity)
+--- Called at the start of the intro state (the state before card select first opens).
+---
+--- When unset or returning nil, the default intro for the character type will be used.
+---
+--- The returned action will not be immediately executed. When the action is completed, the next character's intro will begin or the intro state will end.
+---@field intro_func fun(self: Entity): Action|nil
 --- Used to handle movement input, setting this overrides the default handling.
 ---@field movement_func fun(self: Entity, direction: Direction)
---- Will not be called if there's no matching `can_charge_card_func`
+--- Will not be called if there's no matching `calculate_card_charge_time_func`
 ---
 --- An [Action](https://docs.hubos.dev/client/lua-api/attack-api/action) or `nil` is expected as a return value.
 ---@field charged_card_func fun(self: Entity, card_properties: CardProperties): Action|nil
 --- Will not be called if there's no matching `charged_card_func`
 ---
---- Return true if `charged_card_func` should be called to handle this card.
----@field can_charge_card_func fun(card_properties: CardProperties): boolean
+--- Return a number representing the minimum amount of time the card use button must be held for `charged_card_func` to be called to handle this card.
+---@field calculate_card_charge_time_func fun(self: Entity, card_properties: CardProperties): number|nil
 --- Should return an [Action](https://docs.hubos.dev/client/lua-api/attack-api/action)
 ---@field special_attack_func fun(self: Entity): Action|nil
 --- Should return an [Action](https://docs.hubos.dev/client/lua-api/attack-api/action)
@@ -489,14 +495,14 @@ Field = {}
 ---
 --- Used to handle movement input.
 ---@field movement_func fun(self: Augment, direction: Direction)
---- Will not be called if there's no matching `can_charge_card_func`
+--- Will not be called if there's no matching `calculate_card_charge_time_func`
 ---
 --- An [Action](https://docs.hubos.dev/client/lua-api/attack-api/action) or `nil` is expected as a return value.
 ---@field charged_card_func fun(self: Augment, card_properties: CardProperties): Action|nil
 --- Will not be called if there's no matching `charged_card_func`
 ---
---- Return true if this augment's `charged_card_func` should be called to handle this card.
----@field can_charge_card_func fun(card_properties: CardProperties): boolean
+--- Return a number representing the minimum amount of time the card use button must be held for this augment's `charged_card_func` to be called to handle this card.
+---@field calculate_card_charge_time_func fun(self: Augment, card_properties: CardProperties): number|nil
 --- Overrides [player.special_attack_func](https://docs.hubos.dev/client/lua-api/entity-api/player#playerspecial_attack_func--functionself-actionnil)
 ---
 --- An [Action](https://docs.hubos.dev/client/lua-api/attack-api/action) is expected as a return value.
@@ -528,14 +534,14 @@ Augment = {}
 ---
 --- Used to handle movement input.
 ---@field movement_func fun(self: PlayerForm)
---- Will not be called if there's no matching `can_charge_card_func`
+--- Will not be called if there's no matching `calculate_card_charge_time_func`
 ---
 --- An [Action](https://docs.hubos.dev/client/lua-api/attack-api/action) or `nil` is expected as a return value.
 ---@field charged_card_func fun(self: PlayerForm, card_properties: CardProperties): Action|nil
 --- Will not be called if there's no matching `charged_card_func`
 ---
---- Return true if this form's `charged_card_func` should be called to handle this card.
----@field can_charge_card_func fun(card_properties: CardProperties): boolean
+--- Return a number representing the minimum amount of time the card use button must be held for this form's `charged_card_func` to be called to handle this card.
+---@field calculate_card_charge_time_func fun(self: PlayerForm, card_properties: CardProperties): number|nil
 --- Overrides [player.special_attack_func](https://docs.hubos.dev/client/lua-api/entity-api/player#playerspecial_attack_func--functionself-actionnil) when this form is active.
 --- Also overrides any [Augment](https://docs.hubos.dev/client/lua-api/entity-api/player#augment)'s override.
 ---
@@ -1855,6 +1861,28 @@ function Entity:charge_level() end
 ---@param increment number
 function Entity:boost_charge_level(increment) end
 
+--- Returns true if holding the Shoot button is tied to charging for [player.charged_attack_func](https://docs.hubos.dev/client/lua-api/entity-api/player#playercharged_attack_func--functionself-actionnil)
+---
+--- With no calls to `*:set_charge_with_shoot()`, the default is true.
+---
+--- Throws if the Entity doesn't pass [Player.from()](https://docs.hubos.dev/client/lua-api/entity-api/player)
+---@return boolean
+function Entity:charges_with_shoot() end
+
+--- Configures whether the Shoot button is tied to charging for [player.charged_attack_func](https://docs.hubos.dev/client/lua-api/entity-api/player#playercharged_attack_func--functionself-actionnil), when no other augments or forms are overriding this behavior.
+---
+--- Throws if the Entity doesn't pass [Player.from()](https://docs.hubos.dev/client/lua-api/entity-api/player)
+---@param bool? boolean
+function Entity:set_charge_with_shoot(bool) end
+
+--- Marks the player as trying to charge an attack for [player.charged_attack_func](https://docs.hubos.dev/client/lua-api/entity-api/player#playercharged_attack_func--functionself-actionnil)
+---
+--- Automatically resets to false when the value is used by the engine.
+---
+--- Throws if the Entity doesn't pass [Player.from()](https://docs.hubos.dev/client/lua-api/entity-api/player)
+---@param bool? boolean
+function Entity:mark_charging(bool) end
+
 --- Returns the amount of time in game frames, the `Shoot` button would need to be held for a fully charged attack if the [player.calculate_charge_time](https://docs.hubos.dev/client/lua-api/entity-api/player#playercalculate_charge_time) function was not set.
 ---
 --- Throws if the Entity doesn't pass [Player.from()](https://docs.hubos.dev/client/lua-api/entity-api/player)
@@ -1906,6 +1934,12 @@ function PlayerForm:create_card_button(slot_count, card_button_slot) end
 ---@return CardSelectButton
 function PlayerForm:create_special_button() end
 
+--- Configures whether the Shoot button is tied to charging for [player.charged_attack_func](https://docs.hubos.dev/client/lua-api/entity-api/player#playercharged_attack_func--functionself-actionnil), when no other augments or forms are overriding this behavior.
+---
+--- When set to nil (default), the final value will try to fall back to a specified non-nil value with a lower priority or true.
+---@param bool? boolean
+function PlayerForm:set_charge_with_shoot(bool) end
+
 --- Returns the package id of the augment.
 ---@return string
 function Augment:id() end
@@ -1949,6 +1983,12 @@ function Augment:create_card_button(slot_count, card_button_slot) end
 --- Returns [CardSelectButton](https://docs.hubos.dev/client/lua-api/entity-api/player#cardselectbutton)
 ---@return CardSelectButton
 function Augment:create_special_button() end
+
+--- Configures whether the Shoot button is tied to charging for [player.charged_attack_func](https://docs.hubos.dev/client/lua-api/entity-api/player#playercharged_attack_func--functionself-actionnil), when no other augments or forms are overriding this behavior.
+---
+--- When set to nil (default), the final value will try to fall back to a specified non-nil value with a lower priority or true.
+---@param bool? boolean
+function Augment:set_charge_with_shoot(bool) end
 
 --- Returns a [Sprite](https://docs.hubos.dev/client/lua-api/resource-api/sprite)
 ---@return Sprite
@@ -2260,6 +2300,18 @@ function Resources.play_audio(path, audio_behavior) end
 ---@param loops? boolean
 function Resources.play_music(path, loops) end
 
+--- Returns true if the index represents the local player.
+---@param player_index number
+---@return boolean
+function Resources.is_local(player_index) end
+
+--- Same as [player:input_has()](https://docs.hubos.dev/client/lua-api/entity-api/player#playerinput_hasinput_query).
+---
+--- Allows for spectator input to be read.
+---@param player_index number
+---@param input_query Input
+function Resources.input_has(player_index, input_query) end
+
 --- Audio will play from the beginning (sample 0), looping back to `start_sample` when `end_sample` is reached.
 ---
 --- Stops existing playback of the sound if it has `AudioBehavior.NoOverlap`.
@@ -2376,6 +2428,14 @@ function Animation:has_point(name) end
 ---@param name string
 ---@return { x: number, y: number }
 function Animation:get_point(name) end
+
+--- Calculates where a point is relative to the origin.
+---
+--- Returns `{ x: number, y: number }`.
+---@param name string
+---@param origin_name? string
+---@return { x: number, y: number }
+function Animation:relative_point(name, origin_name) end
 
 --- - `playback`:
 ---   - `Playback.Once` stops when the animation is completed.
@@ -2701,42 +2761,42 @@ function Field:get_entity(id) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- All [Entities](https://docs.hubos.dev/client/lua-api/entity-api/entity) on the field and not deleted will be passed to the callback.
+--- All spawned [Entities](https://docs.hubos.dev/client/lua-api/entity-api/entity) that haven't been deleted will be passed to the callback.
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Field:find_entities(callback) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Characters](https://docs.hubos.dev/client/lua-api/entity-api/character) on the field and not deleted will be passed to the callback, includes [Players](https://docs.hubos.dev/client/lua-api/entity-api/player).
+--- Only spawned [Characters](https://docs.hubos.dev/client/lua-api/entity-api/character) that haven't been deleted will be passed to the callback, includes [Players](https://docs.hubos.dev/client/lua-api/entity-api/player).
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Field:find_characters(callback) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Obstacles](https://docs.hubos.dev/client/lua-api/entity-api/obstacle) on the field and not deleted will be passed to the callback.
+--- Only spawned [Obstacles](https://docs.hubos.dev/client/lua-api/entity-api/obstacle) that haven't been deleted will be passed to the callback.
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Field:find_obstacles(callback) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Players](https://docs.hubos.dev/client/lua-api/entity-api/player) on the field and not deleted will be passed to the callback.
+--- Only spawned [Players](https://docs.hubos.dev/client/lua-api/entity-api/player) that haven't been deleted will be passed to the callback.
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Field:find_players(callback) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Spells](https://docs.hubos.dev/client/lua-api/entity-api/spell) on the field and not deleted will be passed to the callback, excludes [Obstacles](https://docs.hubos.dev/client/lua-api/entity-api/obstacle).
+--- Only spawned [Spells](https://docs.hubos.dev/client/lua-api/entity-api/spell) that haven't been deleted will be passed to the callback, excludes [Obstacles](https://docs.hubos.dev/client/lua-api/entity-api/obstacle).
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Field:find_spells(callback) end
 
 --- Returns a list of entities sorted by distance, for any entity the callback returned true for.
 ---
---- Only [Characters](https://docs.hubos.dev/client/lua-api/entity-api/character) on the field and not deleted will be passed to the callback, includes [Players](https://docs.hubos.dev/client/lua-api/entity-api/player).
+--- Only spawned [Characters](https://docs.hubos.dev/client/lua-api/entity-api/character) that haven't been deleted will be passed to the callback, includes [Players](https://docs.hubos.dev/client/lua-api/entity-api/player).
 ---@param entity Entity
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
@@ -2744,7 +2804,7 @@ function Field:find_nearest_characters(entity, callback) end
 
 --- Returns a list of entities sorted by distance, for any entity the callback returned true for.
 ---
---- Only [Players](https://docs.hubos.dev/client/lua-api/entity-api/player) on the field and not deleted will be passed to the callback.
+--- Only spawned [Players](https://docs.hubos.dev/client/lua-api/entity-api/player) that haven't been deleted will be passed to the callback.
 ---@param entity Entity
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
@@ -2900,7 +2960,7 @@ function Tile:get_tile(direction, distance) end
 ---@param spell Entity
 function Tile:attack_entities(spell) end
 
---- Returns true if the [Entity](https://docs.hubos.dev/client/lua-api/entity-api/entity) is on the field and at the same position as the tile.
+--- Returns true if the [Entity](https://docs.hubos.dev/client/lua-api/entity-api/entity) is at the same position as the tile.
 ---@param entity Entity
 ---@return boolean
 function Tile:contains_entity(entity) end
@@ -2919,28 +2979,28 @@ function Tile:remove_entity_by_id(entity_id) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Entities](https://docs.hubos.dev/client/lua-api/entity-api/entity) on the field and not marked for deletion will be passed to the callback.
+--- Only spawned [Entities](https://docs.hubos.dev/client/lua-api/entity-api/entity) not marked for deletion will be passed to the callback.
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Tile:find_entities(callback) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Characters](https://docs.hubos.dev/client/lua-api/entity-api/character) on the field and not marked for deletion will be passed to the callback.
+--- Only spawned [Characters](https://docs.hubos.dev/client/lua-api/entity-api/character) not marked for deletion will be passed to the callback.
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Tile:find_characters(callback) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Obstacles](https://docs.hubos.dev/client/lua-api/entity-api/obstacle) on the field and not marked for deletion will be passed to the callback.
+--- Only spawned [Obstacles](https://docs.hubos.dev/client/lua-api/entity-api/obstacle) not marked for deletion will be passed to the callback.
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Tile:find_obstacles(callback) end
 
 --- Returns a list of entities for any entity the callback returned true for.
 ---
---- Only [Players](https://docs.hubos.dev/client/lua-api/entity-api/player) on the field and not marked for deletion will be passed to the callback.
+--- Only spawned [Players](https://docs.hubos.dev/client/lua-api/entity-api/player) not marked for deletion will be passed to the callback.
 ---@param callback fun(entity: Entity): boolean
 ---@return Entity[]
 function Tile:find_players(callback) end
@@ -3081,6 +3141,12 @@ function Encounter:player_count() end
 ---@param row number
 function Encounter:spawn_player(player_index, col, row) end
 
+--- - `player_index`: number, starts at 0
+---
+--- Marks the player as a spectator. Avoids creating an entity for this player (Mods from this player will still be loaded).
+---@param player_index number
+function Encounter:mark_spectator(player_index) end
+
 --- - `vel_x`: if unset, uses the "VELOCITY" point on the first frame of the animation.
 --- - `vel_y`: if unset, uses the "VELOCITY" point on the first frame of the animation.
 ---@param texture_path string
@@ -3100,6 +3166,13 @@ function Encounter:set_background(texture_path, animation_path, vel_x, vel_y) en
 ---@param tile_width number
 ---@param tile_height number
 function Encounter:set_panels(texture_paths, animation_path, tile_width, tile_height) end
+
+--- Resizes the field, remember to add two to each dimension to account for the invisible edge tiles. If the field is larger than the screen allows, the camera will adjust placement and zoom to fit all [Characters](https://docs.hubos.dev/client/lua-api/entity-api/character).
+---
+--- Resets tile teams and states on the field.
+---@param width number
+---@param height number
+function Encounter:set_field_size(width, height) end
 
 --- Sets the initial battle music. Use [Resources.play_music()](https://docs.hubos.dev/client/lua-api/resource-api/resources#resourcesplay_musicpath-loops) to change the music in the middle of the battle
 ---@param path string
@@ -3339,6 +3412,11 @@ function CardProperties.new() end
 ---@return CardProperties
 function CardProperties.from_package(package_id, code) end
 
+--- Returns a string, usable anywhere a texture is needed.
+---@param card_properties CardProperties
+---@return string
+function CardProperties.icon_texture(card_properties) end
+
 --- Returns an [Entity](https://docs.hubos.dev/client/lua-api/entity-api/entity), represents the entity affected by the status.
 ---@return Entity
 function Status:owner() end
@@ -3549,12 +3627,12 @@ function AuxProp:require_negative_tile_interaction() end
 
 --- - Body Priority
 --- - `action_types`
----   - `Action.All`: All attack types.
----   - `Action.Normal`: A player's normal attack.
----   - `Action.Charged`: A player's charged attack.
----   - `Action.Special`: A player's special attack.
----   - `Action.Card`: An attack generated by a card.
----   - `Action.Scripted`: A scripted attack.
+---   - `ActionType.All`: All attack types.
+---   - `ActionType.Normal`: A player's normal attack.
+---   - `ActionType.Charged`: A player's charged attack.
+---   - `ActionType.Special`: A player's special attack.
+---   - `ActionType.Card`: An attack generated by a card.
+---   - `ActionType.Scripted`: A scripted attack.
 ---
 --- If the effect is Modify Context, the `action_types` filter will be tested against the generated action.
 --- Otherwise the filter will be tested against any active action on the associated entity.
@@ -3588,7 +3666,7 @@ function AuxProp:require_card_charge_time(compare, time) end
 
 --- - Body priority
 ---
---- The AuxProp will require a [Player](https://docs.hubos.dev/client/lua-api/entity-api/player) to be holding a fully [charged](https://docs.hubos.dev/client/lua-api/entity-api/player#playercan_charge_card_func--functioncard_properties-boolean) card.
+--- The AuxProp will require a [Player](https://docs.hubos.dev/client/lua-api/entity-api/player) to be holding a fully [charged](https://docs.hubos.dev/client/lua-api/entity-api/player#playercalculate_card_charge_time_func--functionself-card_properties-numbernil) card.
 ---@return AuxProp
 function AuxProp:require_charged_card() end
 

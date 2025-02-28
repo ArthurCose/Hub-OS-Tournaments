@@ -16,9 +16,9 @@ local CELL_H = 18
 ---@field private cursor_node Sprite
 ---@field private animation_path string
 ---@field private option_nodes Sprite[]
----@field private player_data table<EntityId, number>
----@field on_confirm fun(player: Entity,index: number)
----@field on_cancel fun(player: Entity)
+---@field private spectator_data table<number, number>
+---@field on_confirm fun(spectator_index: number, index: number)
+---@field on_cancel fun(spectator_index: number)
 local IconMenu = {}
 IconMenu.__index = IconMenu
 
@@ -59,7 +59,7 @@ function IconMenu.new(texture, animation_path, option_states)
     cursor_node = cursor_node,
     animation_path = animation_path,
     option_nodes = option_nodes,
-    player_data = {}
+    spectator_data = {}
   }
   setmetatable(submenu, IconMenu)
   return submenu
@@ -78,13 +78,13 @@ function IconMenu:set_visible(visible)
   self.ui_sprite:set_visible(visible)
 end
 
----@param player Entity
-function IconMenu:handle_input(player)
+---@param spectator_index number
+function IconMenu:handle_input(spectator_index)
   -- handle moving the cursor
-  local pulsed_left = player:input_has(Input.Pulsed.Left)
-  local pulsed_right = player:input_has(Input.Pulsed.Right)
+  local pulsed_left = Resources.input_has(spectator_index, Input.Pulsed.Left)
+  local pulsed_right = Resources.input_has(spectator_index, Input.Pulsed.Right)
 
-  local index = self.player_data[player:id()] or 1
+  local index = self.spectator_data[spectator_index] or 1
 
   if pulsed_left and not pulsed_right then
     index = index - 1
@@ -98,18 +98,18 @@ function IconMenu:handle_input(player)
     index = index % #self.option_nodes + 1
   end
 
-  if player:is_local() then
+  if Resources.is_local(spectator_index) then
     self.cursor_node:set_offset((index - 1) * CELL_W, 0)
   end
 
-  self.player_data[player:id()] = index
+  self.spectator_data[spectator_index] = index
 
-  if self.on_confirm and player:input_has(Input.Pressed.Confirm) then
-    self.on_confirm(player, index)
+  if self.on_confirm and Resources.input_has(spectator_index, Input.Pressed.Confirm) then
+    self.on_confirm(spectator_index, index)
   end
 
-  if self.on_cancel and player:input_has(Input.Pulsed.Cancel) then
-    self.on_cancel(player)
+  if self.on_cancel and Resources.input_has(spectator_index, Input.Pulsed.Cancel) then
+    self.on_cancel(spectator_index)
   end
 end
 

@@ -3,10 +3,10 @@ local IconMenu = require("icon_menu")
 local CardLog = require("card_log")
 local spawn_emote = require("emotes")
 
--- define player specific data
----@alias SpectatorMenu { handle_input: fun(self, entity: Entity) }
----@type table<EntityId, SpectatorMenu>
-local player_data = {}
+-- define spectator specific data
+---@alias SpectatorMenu { handle_input: fun(self, spectator_index: number) }
+---@type table<number, SpectatorMenu>
+local spectator_menu_map = {}
 
 -- base menu
 local base_menu = IconMenu.new(
@@ -41,23 +41,23 @@ local emotes_menu = IconMenu.new(
 
 -- emotes menu event handling
 
-local function toggle_emotes_menu(player)
-  local visible = player_data[player:id()] ~= emotes_menu
+local function toggle_emotes_menu(spectator_index)
+  local visible = spectator_menu_map[spectator_index] ~= emotes_menu
 
-  if player:is_local() then
+  if Resources.is_local(spectator_index) then
     emotes_menu:set_visible(visible)
     base_menu:set_visible(not visible)
   end
 
   if visible then
-    player_data[player:id()] = emotes_menu
+    spectator_menu_map[spectator_index] = emotes_menu
   else
-    player_data[player:id()] = base_menu
+    spectator_menu_map[spectator_index] = base_menu
   end
 end
 
-emotes_menu.on_confirm = function(player, index)
-  toggle_emotes_menu(player)
+emotes_menu.on_confirm = function(spectator_index, index)
+  toggle_emotes_menu(spectator_index)
   spawn_emote(emotes[index])
 end
 
@@ -66,29 +66,29 @@ emotes_menu.on_cancel = toggle_emotes_menu
 -- CardLog menu and input handling
 local card_log_menu = {}
 
----@param player Entity
-function card_log_menu:handle_input(player)
-  if player:input_has(Input.Pressed.Cancel) then
+---@param spectator_index number
+function card_log_menu:handle_input(spectator_index)
+  if Resources.input_has(spectator_index, Input.Pressed.Cancel) then
     -- close menu
-    player_data[player:id()] = base_menu
+    spectator_menu_map[spectator_index] = base_menu
 
-    if player:is_local() then
+    if Resources.is_local(spectator_index) then
       CardLog.set_visible(false)
     end
   end
 
-  if not player:is_local() then
+  if not Resources.is_local(spectator_index) then
     return
   end
 
   -- resolve scroll amount
   local amount = 0
 
-  if player:input_has(Input.Pulsed.Up) then
+  if Resources.input_has(spectator_index, Input.Pulsed.Up) then
     amount = amount + 1
   end
 
-  if player:input_has(Input.Pulsed.Down) then
+  if Resources.input_has(spectator_index, Input.Pulsed.Down) then
     amount = amount - 1
   end
 
@@ -99,16 +99,16 @@ end
 
 -- base menu event handling
 
-base_menu.on_confirm = function(player, index)
+base_menu.on_confirm = function(spectator_index, index)
   if index == 1 then
-    toggle_emotes_menu(player)
+    toggle_emotes_menu(spectator_index)
   elseif index == 2 then
-    if player:is_local() then
+    if Resources.is_local(spectator_index) then
       CardLog.set_visible(true)
     end
 
-    player_data[player:id()] = card_log_menu
-  elseif player:is_local() then
+    spectator_menu_map[spectator_index] = card_log_menu
+  elseif Resources.is_local(spectator_index) then
     local visible = not InputDisplay.visible()
     InputDisplay.set_visible(visible)
 
@@ -125,16 +125,27 @@ end
 base_menu:set_visible(false)
 emotes_menu:set_visible(false)
 
----@param player Entity
-return function(player)
-  player_data[player:id()] = base_menu
+---iffy causes error?
+local function init()
+  local entity = Artifact.new()
 
-  if player:is_local() then
-    base_menu:set_visible(true)
+  local component = entity:create_component(Lifetime.Scene)
+  component.on_update_func = function()
+    for spectator_index, menu in pairs(spectator_menu_map) do
+      menu:handle_input(spectator_index)
+    end
   end
 
-  local component = player:create_component(Lifetime.Scene)
-  component.on_update_func = function()
-    player_data[player:id()]:handle_input(player)
+  Field:spawn(entity, 0, 0)
+end
+
+init()
+
+---@param spectator_index number
+return function(spectator_index)
+  spectator_menu_map[spectator_index] = base_menu
+
+  if Resources.is_local(spectator_index) then
+    base_menu:set_visible(true)
   end
 end

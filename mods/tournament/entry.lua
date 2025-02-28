@@ -10,33 +10,9 @@ local HitDamageJudge = require("hit_damage_judge")
 CardSelectTimer.MAX_TIME = 60 * 60
 
 local player_count = 0
-local cards_ready = 0
----@type Entity[]
-local spectators = {}
 
 ---@param player Entity
 local function init_player(player)
-  local component = player:create_component(Lifetime.CardSelectClose)
-  component.on_update_func = function()
-    cards_ready = cards_ready + 1
-
-    if cards_ready ~= player_count then
-      return
-    end
-
-    -- force close spectator cards select
-    for _, spectator in ipairs(spectators) do
-      spectator:confirm_staged_items()
-    end
-  end
-
-  player:on_delete(function()
-    -- remove spectators from the battle to allow it to end
-    for _, spectator in ipairs(spectators) do
-      spectator:erase()
-    end
-  end)
-
   -- bind and hide input display
   InputDisplay.track(player)
 
@@ -45,39 +21,13 @@ local function init_player(player)
   end
 end
 
----@param spectator Entity
-local function init_spectator(spectator)
-  AfkTimer.set_ignored(spectator, true)
-
-  spectators[#spectators + 1] = spectator
-
-  spectator:set_team(Team.Other)
-
-  -- remove from field
-  spectator:current_tile():remove_entity(spectator)
-
-  -- strip augments
-  for _, augment in ipairs(spectator:augments()) do
-    spectator:boost_augment(augment:id(), -augment:level())
-  end
-
-  -- clear deck
-  for i = #spectator:deck_cards(), 1, -1 do
-    spectator:remove_deck_card(i)
-  end
-
-  -- card select component
-  local card_select_component = spectator:create_component(Lifetime.CardSelectOpen)
-
-  card_select_component.on_update_func = function()
-    spectator:confirm_staged_items()
-  end
-
-  init_ui_for(spectator)
+---@param index number
+local function init_spectator(index)
+  init_ui_for(index)
 end
 
 ---@param encounter Encounter
----@param data { red_count: number, blue_count: number }
+---@param data { red_count: number, blue_count: number, spectator_count: number }
 function encounter_init(encounter, data)
   -- init timers
   local field = encounter:field()
@@ -136,30 +86,17 @@ function encounter_init(encounter, data)
     end
   end
 
-  -- spawn spectator players at 0, 0 to mark as spectators
-  local spectator_tile = field:tile_at(0, 0) --[[@as Tile]]
-  spectator_tile:set_team(Team.Red, Direction.Right)
-  spectator_tile:set_team(Team.Other, spectator_tile:facing())
-
-  for i = player_count, encounter:player_count() - 1 do
-    encounter:spawn_player(i, 0, 0)
+  for i = player_count, player_count + data.spectator_count do
+    encounter:mark_spectator(i)
+    init_spectator(i)
   end
 
-  -- hack to detect the players we moved to 0, 0 and convert them to spectators
+  -- entity to init players on the first frame they're made available
   local entity = Artifact.new()
 
   entity.on_spawn_func = function()
-    spectator_tile:set_team(spectator_tile:original_team(), spectator_tile:facing())
-
     field:find_players(function(player)
-      local tile = player:current_tile()
-
-      if tile:x() ~= 0 then
-        init_player(player)
-        return false
-      end
-
-      init_spectator(player)
+      init_player(player)
       return false
     end)
 
