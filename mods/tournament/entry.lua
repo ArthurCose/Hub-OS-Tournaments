@@ -11,6 +11,11 @@ CardSelectTimer.MAX_TIME = 60 * 60
 
 local player_count = 0
 
+---@param index number
+local function init_spectator(index)
+  init_ui_for(index)
+end
+
 ---@param player Entity
 local function init_player(player)
   -- bind and hide input display
@@ -19,11 +24,10 @@ local function init_player(player)
   if player:is_local() then
     InputDisplay.set_visible(false)
   end
-end
 
----@param index number
-local function init_spectator(index)
-  init_ui_for(index)
+  player:on_delete(function(player)
+    init_spectator(player:player_index())
+  end)
 end
 
 ---@param encounter Encounter
@@ -38,6 +42,7 @@ function encounter_init(encounter, data)
   CardLog.init(field)
 
   encounter:set_turn_limit(15)
+  encounter:set_spectate_on_delete(true)
 
   -- background and music
   encounter:set_background("battle-bg.png", "battle-bg.animation")
