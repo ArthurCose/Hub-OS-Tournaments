@@ -264,7 +264,7 @@ local prepare_next_battle = Async.create_function(function()
 
     print("Initiating battle: " .. match.red_team:to_string() .. " vs " .. match.blue_team:to_string())
 
-    local red_count = #match.blue_team.members
+    local red_count = #match.red_team.members
     local blue_count = #match.blue_team.members
     local spectator_count = #list - (red_count + blue_count)
 
