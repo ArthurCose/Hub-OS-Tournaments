@@ -53,12 +53,14 @@ local function handle_team_disparity(field)
 
   -- resolve base count
   local base_count = math.maxinteger
+  local largest_count = 0
 
   for _, team in ipairs(teams) do
     local player_count = #team_lists[team]
 
     if player_count > 0 then
       base_count = math.min(base_count, player_count)
+      largest_count = math.max(largest_count, player_count)
     end
   end
 
@@ -90,15 +92,23 @@ local function handle_team_disparity(field)
       if tile then
         tile:set_state(TileState.PermaHole)
       end
-    else
-      -- nerf larger team
-      local raw_multiplier = math.sqrt(base_count / #players)
-      local inverse_multiplier = -math.ceil((1 - raw_multiplier) * 100) / 100
+
+      -- provide status guard to the entire team
+      local status_gaurd_flags = Hit.Freeze | Hit.Paralyze | Hit.Blind | Hit.Confuse
 
       for _, player in ipairs(players) do
-        player:boost_max_health(player:max_health() * inverse_multiplier)
-        local card_aux = AuxProp.new():increase_card_multiplier(inverse_multiplier)
-        player:add_aux_prop(card_aux)
+        local status_guard = AuxProp.new():declare_immunity(status_gaurd_flags)
+        player:add_aux_prop(status_guard)
+      end
+    end
+
+    if #players ~= largest_count then
+      local diff = largest_count - #players
+      local hp_increase = diff * 1000 / #players
+
+      for _, player in ipairs(players) do
+        player:boost_max_health(hp_increase)
+        player:set_health(player:health() + hp_increase)
       end
     end
   end

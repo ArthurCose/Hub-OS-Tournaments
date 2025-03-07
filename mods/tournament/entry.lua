@@ -31,8 +31,10 @@ local function init_player(player)
 end
 
 ---@param encounter Encounter
----@param data { red_count: number, blue_count: number, spectator_count: number }
+---@param data { red_count: number, blue_count: number, spectator_count: number, battle_name: string }
 function encounter_init(encounter, data)
+  print(data.battle_name)
+
   -- init timers
   local field = encounter:field()
   CardSelectTimer.init(field)
@@ -41,7 +43,7 @@ function encounter_init(encounter, data)
   HitDamageJudge.init(field)
   CardLog.init(field)
 
-  encounter:set_turn_limit(15)
+  encounter:set_turn_limit(10)
   encounter:set_spectate_on_delete(true)
 
   -- background and music
