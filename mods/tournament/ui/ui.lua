@@ -57,7 +57,6 @@ local function toggle_emotes_menu(spectator_index)
 end
 
 emotes_menu.on_confirm = function(spectator_index, index)
-  toggle_emotes_menu(spectator_index)
   spawn_emote(emotes[index])
 end
 
