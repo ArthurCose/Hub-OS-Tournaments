@@ -1,13 +1,12 @@
+local HitDamageJudge = require("BattleNetwork6.Libraries.HitDamageJudge")
+local Timers = require("dev.konstinople.library.timers")
+
 local init_ui_for = require("ui/ui")
 local CardLog = require("ui/card_log")
 local handle_team_disparity = require("handle_team_disparity")
-local CardSelectTimer = require("timers/card_select_timer")
-local TurnTimer = require("timers/turn_timer")
-local AfkTimer = require("timers/afk_timer")
 local InputDisplay = require("input_display/input_display")
-local HitDamageJudge = require("hit_damage_judge")
 
-CardSelectTimer.MAX_TIME = 60 * 60
+Timers.CardSelectTimer.MAX_TIME = 60 * 60
 
 local player_count = 0
 
@@ -36,11 +35,12 @@ function encounter_init(encounter, data)
   print(data.battle_name)
 
   -- init timers
+  Timers.CardSelectTimer.init(encounter)
+  Timers.TurnTimer.init(encounter)
+  Timers.AfkTimer.init(encounter)
+  HitDamageJudge.init(encounter)
+
   local field = encounter:field()
-  CardSelectTimer.init(field)
-  TurnTimer.init(field)
-  AfkTimer.init(field)
-  HitDamageJudge.init(field)
   CardLog.init(field)
 
   encounter:set_turn_limit(10)

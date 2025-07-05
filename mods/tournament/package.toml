@@ -1,3 +1,9 @@
 [package]
 category = "encounter"
 id = "dev.konstinople.battle.tournament"
+
+[dependencies]
+libraries = [
+  "dev.konstinople.library.timers",
+  "BattleNetwork6.Libraries.HitDamageJudge"
+]

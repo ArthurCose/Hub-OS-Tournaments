@@ -6,6 +6,8 @@
 
 ---@class Net.SpriteId
 
+---@class Net.BattleId
+
 ---@class Net.EventEmitter
 Net.EventEmitter = {}
 
@@ -32,11 +34,11 @@ Net.EventEmitter = {}
 ---@field custom_properties Net.CustomProperties
 
 ---@class Net.ObjectOptions
----@field id? number
 ---@field name? string
 ---@field class? string deprecated
 ---@field type? string
 ---@field visible? boolean
+---@field privacy? boolean
 ---@field x? number
 ---@field y? number
 ---@field z? number
@@ -132,13 +134,16 @@ Net.EventEmitter = {}
 ---@field custom_atlas? Net.TextureAnimationPair,
 
 ---@class Net.SpriteOptions
----@field player_id? Net.ActorId restricts visibility to this specific player if set.
+---@field player_id? Net.ActorId Restricts visibility to this specific player if set.
 ---@field parent_id "widget" | "hud" | Net.ActorId
---- A point defined in the parent's animation file or built-in point such as "EMOTE". If unset the origin will be used. For "widget" and "hud" the origin is the top left of the screen.
+---A point defined in the parent's animation file or built-in point such as "EMOTE".
+---If unset the origin will be used.
+---
+---For "widget" and "hud" the origin is the top left of the screen.
 ---@field parent_point? string
----@field x? number offset from `parent_point` in screen pixels
----@field y? number offset from `parent_point` in screen pixels
----@field layer? number used for sorting sprites relative to the parent. Use negatives if you want to display in front of other sprites.
+---@field x? number Offset from `parent_point` in screen pixels
+---@field y? number Offset from `parent_point` in screen pixels
+---@field layer? number Used for sorting sprites relative to the parent. Use negatives if you want to display in front of other sprites.
 ---@field texture_path string
 ---@field animation_path? string
 ---@field animation? string Animation state, this state will be looped.
@@ -176,12 +181,13 @@ Net.EventEmitter = {}
 ---@field rotated boolean
 
 ---@class Net.BattleResults
----@field player_id string
+---@field player_id Net.ActorId
+---@field won boolean
 ---@field health number
 ---@field score number
 ---@field time number
 ---@field ran boolean
----@field emotion number
+---@field emotion string
 ---@field turns number
 ---@field allies { name: string, health: number }[]
 ---@field enemies { name: string, health: number }[]
@@ -280,9 +286,8 @@ function Net.EventEmitter:remove_listener(event_name, callback) end
 --- emitter:remove_on_any_listener(listener)
 --- emitter:emit("example_event", "c", "d")  -- no output
 --- ```
----@param event_name string
 ---@param callback fun()
-function Net.EventEmitter:remove_on_any_listener(event_name, callback) end
+function Net.EventEmitter:remove_on_any_listener(callback) end
 
 --- Returns an iterator that returns promises with the value set to `...` (Event custom parameters).
 ---
@@ -317,9 +322,8 @@ function Net.EventEmitter:async_iter(event_name) end
 --- emitter:emit("example_event", "c", "d")
 --- emitter:destroy()
 --- ```
----@param event_name string
 ---@return fun(): Net.Promise
-function Net.EventEmitter:async_iter_all(event_name) end
+function Net.EventEmitter:async_iter_all() end
 
 --- Allows async iterators to complete. Otherwise iterators will wait until the program ends.
 ---
@@ -390,6 +394,29 @@ function Net.get_tile_width(area_id) end
 ---@param area_id string
 ---@return number
 function Net.get_tile_height(area_id) end
+
+--- Returns the screen position using multi-values.
+---
+--- ```lua
+--- local x, y = Net.world_to_screen_multi(area_id, x, y)
+--- ```
+---@param area_id string
+---@param x number
+---@param y number
+---@param z? number
+---@return number, number
+function Net.world_to_screen_multi(area_id, x, y, z) end
+
+--- Returns the world position using multi-values.
+---
+--- ```lua
+--- local x, y = Net.screen_to_world_multi(area_id, x, y)
+--- ```
+---@param area_id string
+---@param x number
+---@param y number
+---@return number, number
+function Net.screen_to_world_multi(area_id, x, y) end
 
 --- Returns a [Net.CustomProperties](https://docs.hubos.dev/server/lua-api/objects#netcustomproperties)
 ---@param area_id string
@@ -482,6 +509,17 @@ function Net.set_foreground(area_id, texture_path, animation_path, vel_x, vel_y,
 ---@param area_id string
 ---@return Net.Position
 function Net.get_spawn_position(area_id) end
+
+--- Returns the spawn position using multi-values.
+---
+--- Defaults to either the Home Warp or (0, 0, 0)
+---
+--- ```lua
+--- local x, y, z = Net.get_spawn_position_multi(area_id)
+--- ```
+---@param area_id string
+---@return number, number, number
+function Net.get_spawn_position_multi(area_id) end
 
 --- Sets the default spawn position for players entering the area.
 ---@param area_id string
@@ -588,17 +626,17 @@ function Net.remove_object(area_id, object_id) end
 ---@param name string
 function Net.set_object_name(area_id, object_id, name) end
 
---- Changes the object's class, clients will be updated at the end of the tick.
----@param area_id string
----@param object_id number|string
----@param class string
-function Net.set_object_class(area_id, object_id, class) end
-
---- Deprecated. Use set_object_class instead.
+--- Changes the object's type, clients will be updated at the end of the tick.
 ---@param area_id string
 ---@param object_id number|string
 ---@param type string
 function Net.set_object_type(area_id, object_id, type) end
+
+--- Deprecated. Use set_object_type instead.
+---@param area_id string
+---@param object_id number|string
+---@param class string
+function Net.set_object_class(area_id, object_id, class) end
 
 --- Modifies an object's custom property, clients will be updated at the end of the tick.
 ---@param area_id string
@@ -626,6 +664,12 @@ function Net.set_object_rotation(area_id, object_id, rotation) end
 ---@param visibility boolean
 function Net.set_object_visibility(area_id, object_id, visibility) end
 
+--- If `private` is true, this object won't be sent to clients.
+---@param area_id string
+---@param object_id number|string
+---@param private boolean
+function Net.set_object_privacy(area_id, object_id, private) end
+
 --- Moves the object, clients will be updated at the end of the tick.
 ---@param area_id string
 ---@param object_id number|string
@@ -641,6 +685,16 @@ function Net.move_object(area_id, object_id, x, y, layer) end
 ---@param object_id number|string
 ---@param object_data Net.ObjectData
 function Net.set_object_data(area_id, object_id, object_data) end
+
+--- Returns true if the point is inside of the object.
+---
+--- Supports rectangle, ellipse, and polygon shape objects. Any other objects, such as tile objects, will always return false.
+---@param area_id string
+---@param object_id number|string
+---@param x number
+---@param y number
+---@return boolean
+function Net.is_inside_object(area_id, object_id, x, y) end
 
 --- Returns true if the player is in a server sent battle, or if a board, shop, or textbox is open.
 ---@param player_id Net.ActorId
@@ -863,6 +917,13 @@ function Net.set_player_map_color(player_id, color) end
 ---@param bot_id Net.ActorId
 ---@param color Net.Color
 function Net.set_bot_map_color(bot_id, color) end
+
+--- Sends a link to the player to open in the browser. Permission will be asked before opening.
+---
+--- Supports `http://` and `https://` protocols.
+---@param player_id Net.ActorId
+---@param address string
+function Net.refer_link(player_id, address) end
 
 --- Opens a menu for the player to save the referred server.
 ---@param player_id Net.ActorId
@@ -1097,25 +1158,62 @@ function Net.is_player_battling(player_id) end
 
 --- - `encounter_data`: anything that could be represented as JSON.
 ---   - Read as second param in encounter_init for the encounter package
+---
+--- Returns an event emitter and a battle id.
+---
+--- ```lua
+--- local emitter, battle_id = Net.initiate_encounter(player_id, "/server/mods/my-encounter")
+--- ```
 ---@param player_id Net.ActorId
 ---@param package_path string
 ---@param encounter_data? any
+---@return Net.EventEmitter, Net.BattleId
 function Net.initiate_encounter(player_id, package_path, encounter_data) end
 
 --- - `encounter_data`: anything that could be represented as JSON.
 ---   - Read as second param in encounter_init for the encounter package
+---
+--- Returns an event emitter and a battle id.
+---
+--- ```lua
+--- local emitter, battle_id = Net.initiate_pvp(player_a, player_b, "/server/mods/my-encounter")
+--- ```
 ---@param player_1_id Net.ActorId
 ---@param player_2_id Net.ActorId
 ---@param package_path? string
 ---@param encounter_data? any
+---@return Net.EventEmitter, Net.BattleId
 function Net.initiate_pvp(player_1_id, player_2_id, package_path, encounter_data) end
 
 --- - `encounter_data`: anything that could be represented as JSON.
 ---   - Read as second param in encounter_init for the encounter package
+---
+--- Returns an event emitter and a battle id.
+---
+--- ```lua
+--- local emitter, battle_id = Net.initiate_netplay(player_ids, "/server/mods/my-encounter")
+--- ```
 ---@param player_ids Net.ActorId[]
 ---@param package_path? string
 ---@param encounter_data? any
+---@return Net.EventEmitter, Net.BattleId
 function Net.initiate_netplay(player_ids, package_path, encounter_data) end
+
+--- Sends data to callbacks provided to [encounter:on_server_message()](https://docs.hubos.dev/client/lua-api/field-api/encounter#encounteron_server_messagefunctiondata) in encounter mods sent to the client.
+---
+--- ```lua
+--- local emitter, battle_id = Net.initiate_encounter(player_ids, "/server/mods/my-encounter")
+---
+--- emitter:on("battle_message", function(event)
+---   -- read and respond to encounter:send_to_server() messages
+---   print(event.data)
+---   Net.send_battle_message(battle_id, "Pong!")
+---   Net.send_battle_message(battle_id, { a = "b" })
+--- end)
+--- ```
+---@param battle_id Net.BattleId
+---@param encounter_data any
+function Net.send_battle_message(battle_id, encounter_data) end
 
 --- Sends the player to a different area.
 ---@param player_id Net.ActorId
@@ -1505,6 +1603,11 @@ function Net.get_asset_type(server_path) end
 ---@return number
 function Net.get_asset_size(server_path) end
 
+--- Returns the asset's hash string.
+---@param server_path string
+---@return string
+function Net.get_asset_hash(server_path) end
+
 --- Allows for assets to be sent ahead of time to reduce apparent server hiccups.
 ---
 --- Calling in response to `player_request` will cause cached files on the client to be ignored.
@@ -1562,7 +1665,7 @@ function Async.create_promise(callback) end
 ---@return any
 function Async.await(promise) end
 
---- Retruns an iterator from an async iterator (an iterator which returns promises).
+--- Returns an iterator from an async iterator (an iterator which returns promises).
 ---
 --- Can only be used within a coroutine. Use `Async.promisify()` to let the server handle resuming the coroutine.
 ---
@@ -1601,6 +1704,7 @@ function Async.await(promise) end
 --- end))
 --- ```
 ---@param async_iterator fun(): Net.Promise<any>
+---@return fun(): any
 function Async.await(async_iterator) end
 
 --- Can only be used within an async scope or coroutine.
@@ -1673,6 +1777,13 @@ function Async.read_file(path) end
 ---@param content string
 ---@return Net.Promise<boolean>
 function Async.write_file(path, content) end
+
+--- Creates a directory at `path` if it does not already exist.
+---
+--- Returns a promise.
+---@param path string
+---@return Net.Promise<nil>
+function Async.ensure_dir(path) end
 
 --- Returns a promise that resolves to `{}?`
 ---@param address string
