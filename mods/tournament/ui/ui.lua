@@ -135,7 +135,7 @@ local function init()
     end
   end
 
-  Field:spawn(entity, 0, 0)
+  Field.spawn(entity, 0, 0)
 end
 
 init()

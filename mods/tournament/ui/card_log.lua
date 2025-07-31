@@ -210,13 +210,12 @@ function CardLog.set_visible(visible)
   root_node:set_visible(visible)
 end
 
----@param field Field
-function CardLog.init(field)
+function CardLog.init()
   local artifact = Artifact.new()
 
   artifact.on_update_func = function()
     -- find and track players
-    field:find_players(function(player)
+    Field.find_players(function(player)
       local aux_prop = AuxProp.new()
           :require_action(ActionType.Card)
           :intercept_action(function(action)
@@ -244,7 +243,7 @@ function CardLog.init(field)
     node:set_offset(offset.x, offset.y - 1)
   end
 
-  field:spawn(artifact, 0, 0)
+  Field.spawn(artifact, 0, 0)
 end
 
 return CardLog

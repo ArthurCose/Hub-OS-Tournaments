@@ -1,12 +1,11 @@
----@param field Field
 ---@param team Team
 ---@return Tile?
-local function find_empty_boundary_tile(field, team)
+local function find_empty_boundary_tile(team)
   local opponent_tile_encountered = false
   local last_team_tile
 
-  for x = 1, field:width() - 1 do
-    local tile = field:tile_at(x, 1) --[[@as Tile]]
+  for x = 1, Field.width() - 1 do
+    local tile = Field.tile_at(x, 1) --[[@as Tile]]
 
     if tile:team() ~= team then
       opponent_tile_encountered = true
@@ -24,8 +23,8 @@ local function find_empty_boundary_tile(field, team)
   end
 
   if last_team_tile then
-    for y = 1, field:height() - 1 do
-      local tile = field:tile_at(last_team_tile:x(), y) --[[@as Tile]]
+    for y = 1, Field.height() - 1 do
+      local tile = Field.tile_at(last_team_tile:x(), y) --[[@as Tile]]
 
       if not tile:is_reserved() then
         return tile
@@ -34,8 +33,7 @@ local function find_empty_boundary_tile(field, team)
   end
 end
 
----@param field Field
-local function handle_team_disparity(field)
+local function handle_team_disparity()
   local teams = { Team.Red, Team.Blue, Team.Other }
   ---@type table<Team, Entity[]>
   local team_lists = {
@@ -44,7 +42,7 @@ local function handle_team_disparity(field)
     [Team.Other] = {}
   }
 
-  field:find_players(function(player)
+  Field.find_players(function(player)
     local players = team_lists[player:team()]
     players[#players + 1] = player
 
@@ -87,7 +85,7 @@ local function handle_team_disparity(field)
 
     if #players == base_count then
       -- nerf area grabs by opponents using holes
-      local tile = find_empty_boundary_tile(field, team)
+      local tile = find_empty_boundary_tile(team)
 
       if tile then
         tile:set_state(TileState.PermaHole)

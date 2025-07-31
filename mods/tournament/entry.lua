@@ -40,8 +40,7 @@ function encounter_init(encounter, data)
   Timers.AfkTimer.init(encounter)
   HitDamageJudge.init(encounter)
 
-  local field = encounter:field()
-  CardLog.init(field)
+  CardLog.init()
 
   encounter:set_turn_limit(10)
   encounter:set_spectate_on_delete(true)
@@ -102,15 +101,15 @@ function encounter_init(encounter, data)
   local entity = Artifact.new()
 
   entity.on_spawn_func = function()
-    field:find_players(function(player)
+    Field.find_players(function(player)
       init_player(player)
       return false
     end)
 
-    handle_team_disparity(field)
+    handle_team_disparity()
 
     entity:erase()
   end
 
-  field:spawn(entity, 0, 0)
+  Field.spawn(entity, 0, 0)
 end

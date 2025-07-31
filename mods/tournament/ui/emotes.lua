@@ -8,7 +8,7 @@ local emote_nodes = {}
 
 local view_artifact = Artifact.new()
 local view_sprite = view_artifact:sprite()
-Field:spawn(view_artifact, 0, 0)
+Field.spawn(view_artifact, 0, 0)
 
 local view_component = view_artifact:create_component(Lifetime.Scene)
 
@@ -39,7 +39,7 @@ local function spawn_emote(name)
 
   node._color = node:color()
   node:set_offset(
-    math.random(Tile:width(), (Field:width() - 2) * Tile:width()),
+    math.random(Tile:width(), (Field.width() - 2) * Tile:width()),
     math.random(-Tile:height() * 1.5, Tile:height() / 2 - 4)
   )
   node:set_never_flip(true)
