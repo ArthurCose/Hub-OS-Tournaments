@@ -1,33 +1,12 @@
 local HitDamageJudge = require("BattleNetwork6.Libraries.HitDamageJudge")
 local Timers = require("dev.konstinople.library.timers")
 
-local init_ui_for = require("ui/ui")
-local CardLog = require("ui/card_log")
+local SpectatorFun = require("ui/ui")
 local handle_team_disparity = require("handle_team_disparity")
-local InputDisplay = require("input_display/input_display")
 
 Timers.CardSelectTimer.MAX_TIME = 60 * 60
 
 local player_count = 0
-
----@param index number
-local function init_spectator(index)
-  init_ui_for(index)
-end
-
----@param player Entity
-local function init_player(player)
-  -- bind and hide input display
-  InputDisplay.track(player)
-
-  if player:is_local() then
-    InputDisplay.set_visible(false)
-  end
-
-  player:on_delete(function(player)
-    init_spectator(player:player_index())
-  end)
-end
 
 ---@param encounter Encounter
 ---@param data { red_count: number, blue_count: number, spectator_count: number, battle_name: string }
@@ -40,7 +19,7 @@ function encounter_init(encounter, data)
   Timers.AfkTimer.init(encounter)
   HitDamageJudge.init(encounter)
 
-  CardLog.init()
+  SpectatorFun.init(encounter)
 
   encounter:set_turn_limit(10)
   encounter:set_spectate_on_delete(true)
@@ -94,18 +73,12 @@ function encounter_init(encounter, data)
 
   for i = player_count, player_count + data.spectator_count do
     encounter:mark_spectator(i)
-    init_spectator(i)
   end
 
   -- entity to init players on the first frame they're made available
   local entity = Artifact.new()
 
   entity.on_spawn_func = function()
-    Field.find_players(function(player)
-      init_player(player)
-      return false
-    end)
-
     handle_team_disparity()
 
     entity:erase()
