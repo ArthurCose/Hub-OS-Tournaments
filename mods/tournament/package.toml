@@ -4,6 +4,7 @@ id = "dev.konstinople.battle.tournament"
 
 [dependencies]
 libraries = [
+  "BattleNetwork6.Libraries.HitDamageJudge",
   "dev.konstinople.library.timers",
-  "BattleNetwork6.Libraries.HitDamageJudge"
+  "dev.konstinople.library.spectator_fun",
 ]

@@ -1,7 +1,7 @@
 local HitDamageJudge = require("BattleNetwork6.Libraries.HitDamageJudge")
 local Timers = require("dev.konstinople.library.timers")
 
-local SpectatorFun = require("ui/ui")
+local SpectatorFun = require("dev.konstinople.library.spectator_fun")
 local handle_team_disparity = require("handle_team_disparity")
 
 Timers.CardSelectTimer.MAX_TIME = 60 * 60

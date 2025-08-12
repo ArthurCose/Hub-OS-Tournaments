@@ -5,6 +5,7 @@ local package_ids = {
   -- libraries
   "BattleNetwork6.Libraries.HitDamageJudge",
   "dev.konstinople.library.timers",
+  "dev.konstinople.library.spectator_fun",
 }
 
 ModDownloader.maintain(package_ids)
